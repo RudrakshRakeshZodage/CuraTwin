@@ -63,7 +63,7 @@ sequenceDiagram
 ## 📸 Application Preview
 
 <p align="center">
-  <img src="assets/screenshots/curatwin_preview.png" alt="CuraTwin Dashboard Preview" width="100%" />
+  <img src="images/1.png" alt="CuraTwin Dashboard Live Preview" width="100%" />
 </p>
 
 ---
