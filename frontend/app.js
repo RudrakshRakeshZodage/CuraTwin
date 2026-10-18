@@ -559,14 +559,26 @@ function checkStalePredictionStatus() {
 }
 
 // -----------------------------------------------------------------------------
-// Backend Health Check
+// Backend Health Check with Auto-Wake & Retry
 // -----------------------------------------------------------------------------
-async function checkBackendHealth() {
+let healthCheckTimer = null;
+let isHealthChecking = false;
+
+async function checkBackendHealth(isRetry = false) {
+  if (isHealthChecking && !isRetry) return;
+  isHealthChecking = true;
+
   const baseUrl = getEffectiveApiBaseUrl();
   updateBackendStatus("checking", "Connecting to Backend...");
 
+  // If server is cold-starting on Render free tier, alert the user after 4 seconds
+  const wakingAlertTimer = setTimeout(() => {
+    updateBackendStatus("waking", "Waking up server (~30s)...");
+  }, 4000);
+
+  // Give Render free tier up to 45 seconds to spin up from sleep
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
 
   try {
     const response = await fetch(`${baseUrl}/health`, {
@@ -574,25 +586,42 @@ async function checkBackendHealth() {
       signal: controller.signal,
       headers: { Accept: "application/json" },
     });
+
+    clearTimeout(wakingAlertTimer);
     clearTimeout(timeoutId);
 
     if (response.ok) {
       const data = await response.json();
       if (data.model_loaded) {
         updateBackendStatus("online", `Backend Online (${data.estimator})`);
+        if (healthCheckTimer) {
+          clearTimeout(healthCheckTimer);
+          healthCheckTimer = null;
+        }
+        isHealthChecking = false;
         return true;
       }
       updateBackendStatus("offline", "Model Not Loaded");
-      return false;
+    } else {
+      updateBackendStatus("offline", `HTTP Error ${response.status}`);
     }
-    updateBackendStatus("offline", `HTTP Error ${response.status}`);
-    return false;
   } catch (err) {
+    clearTimeout(wakingAlertTimer);
     clearTimeout(timeoutId);
     console.warn("Health check error:", err);
-    updateBackendStatus("offline", "Backend Sleeping / Offline");
-    return false;
+    updateBackendStatus("offline", "Backend Sleeping (Click to wake)");
+
+    // Auto-retry in 8 seconds if server was cold and waking up
+    if (!healthCheckTimer) {
+      healthCheckTimer = setTimeout(() => {
+        healthCheckTimer = null;
+        checkBackendHealth(true);
+      }, 8000);
+    }
   }
+
+  isHealthChecking = false;
+  return false;
 }
 
 function updateBackendStatus(statusType, label) {
@@ -939,6 +968,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize synced patient profile
   syncProfileFromForm();
+
+  // Click badge to manually retry health check / wake up server
+  if (elements.backendStatusBadge) {
+    elements.backendStatusBadge.addEventListener("click", () => {
+      checkBackendHealth(true);
+    });
+  }
 
   // Health check on launch
   checkBackendHealth();

@@ -153,6 +153,12 @@ body {
   border: 1px solid var(--border-light);
   background-color: var(--bg-card);
   transition: var(--transition);
+  cursor: pointer;
+  user-select: none;
+}
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .status-dot {
@@ -168,6 +174,16 @@ body {
 .status-checking .status-dot {
   background-color: #94a3b8;
   animation: pulse-dot 1.5s infinite;
+}
+
+.status-waking {
+  color: #b45309;
+  background-color: #fef3c7;
+  border-color: #fcd34d;
+}
+.status-waking .status-dot {
+  background-color: #f59e0b;
+  animation: pulse-dot 0.8s infinite;
 }
 
 .status-online {
