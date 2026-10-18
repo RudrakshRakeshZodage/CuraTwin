@@ -424,16 +424,24 @@
             
             <div class="trend-chart-viewport" id="trend-chart-viewport">
               <svg id="svg-glucose-trend" class="trend-svg" viewBox="0 0 520 160" preserveAspectRatio="none">
-                <!-- Target Normal Glycemic Range Band -->
-                <rect x="0" y="45" width="520" height="65" fill="#f0fdf4" opacity="0.8" />
-                <line x1="0" y1="45" x2="520" y2="45" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="3,3" />
-                <line x1="0" y1="110" x2="520" y2="110" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="3,3" />
-                
-                <!-- Guidelines & Labels -->
-                <text x="6" y="40" font-size="9" fill="#166534" font-family="sans-serif">140 mg/dL (Elevated)</text>
-                <text x="6" y="125" font-size="9" fill="#166534" font-family="sans-serif">70 mg/dL (Baseline)</text>
+                <defs>
+                  <linearGradient id="glucose-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0284c7" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0.02" />
+                  </linearGradient>
+                </defs>
 
-                <!-- Dynamic Path & Points (Populated by app.js) -->
+                <!-- Target Normal Glycemic Range Band (70 to 140 mg/dL) -->
+                <rect x="0" y="76" width="520" height="54" fill="#f0fdf4" opacity="0.85" />
+                <line x1="0" y1="76" x2="520" y2="76" stroke="#86efac" stroke-width="1" stroke-dasharray="4,4" />
+                <line x1="0" y1="130" x2="520" y2="130" stroke="#86efac" stroke-width="1" stroke-dasharray="4,4" />
+                
+                <!-- Target Range Labels -->
+                <text x="8" y="71" font-size="9" font-weight="600" fill="#15803d" font-family="sans-serif">140 mg/dL (Elevated Target Limit)</text>
+                <text x="8" y="142" font-size="9" font-weight="600" fill="#15803d" font-family="sans-serif">70 mg/dL (Baseline Target Limit)</text>
+
+                <!-- Dynamic Area Fill & Path & Points (Populated by app.js) -->
+                <path id="svg-chart-area" fill="url(#glucose-area-gradient)" d="" />
                 <path id="svg-chart-path" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="" />
                 <g id="svg-chart-dots"></g>
               </svg>

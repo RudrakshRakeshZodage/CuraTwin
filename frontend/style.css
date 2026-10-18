@@ -1589,6 +1589,15 @@ body {
   color: var(--text-light);
   font-size: 0.8rem;
   background-color: rgba(248, 250, 252, 0.9);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.chart-placeholder[hidden],
+.chart-placeholder.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* Linked Patient Clinical Profile Card */

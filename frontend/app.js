@@ -106,6 +106,7 @@ const elements = {
   telemetryStepsTime: document.getElementById("telemetry-steps-time"),
 
   // Live Continuous Trend Chart (SVG)
+  svgChartArea: document.getElementById("svg-chart-area"),
   svgChartPath: document.getElementById("svg-chart-path"),
   svgChartDots: document.getElementById("svg-chart-dots"),
   chartEmptyPlaceholder: document.getElementById("chart-empty-placeholder"),
@@ -430,6 +431,15 @@ function resetTelemetryDisplay() {
   elements.telemetryStepsVal.textContent = "--";
   elements.telemetryStepsTime.textContent = "--:--:--";
 
+  if (elements.svgChartPath) elements.svgChartPath.setAttribute("d", "");
+  if (elements.svgChartArea) elements.svgChartArea.setAttribute("d", "");
+  if (elements.svgChartDots) elements.svgChartDots.innerHTML = "";
+  if (elements.chartEmptyPlaceholder) {
+    elements.chartEmptyPlaceholder.style.display = "flex";
+    elements.chartEmptyPlaceholder.removeAttribute("hidden");
+    elements.chartEmptyPlaceholder.classList.remove("hidden");
+  }
+
   elements.telemetryLogTbody.innerHTML = `
     <tr class="empty-row"><td colspan="6">No telemetry received yet. Click Start Stream above.</td></tr>
   `;
@@ -466,17 +476,28 @@ function appendTelemetryLog(reading) {
 function renderTrendChart() {
   const history = [...patientState.measurementHistory].reverse(); // chronological left to right
   const pathEl = elements.svgChartPath;
+  const areaEl = elements.svgChartArea;
   const dotsG = elements.svgChartDots;
   const placeholder = elements.chartEmptyPlaceholder;
 
   if (history.length === 0) {
-    pathEl.setAttribute("d", "");
-    dotsG.innerHTML = "";
-    placeholder.removeAttribute("hidden");
+    if (pathEl) pathEl.setAttribute("d", "");
+    if (areaEl) areaEl.setAttribute("d", "");
+    if (dotsG) dotsG.innerHTML = "";
+    if (placeholder) {
+      placeholder.style.display = "flex";
+      placeholder.removeAttribute("hidden");
+      placeholder.classList.remove("hidden");
+    }
     return;
   }
 
-  placeholder.setAttribute("hidden", "true");
+  // Force hide the placeholder explicitly both via inline style and attribute/class
+  if (placeholder) {
+    placeholder.style.display = "none";
+    placeholder.setAttribute("hidden", "true");
+    placeholder.classList.add("hidden");
+  }
 
   const width = 520;
   const height = 160;
@@ -492,33 +513,46 @@ function renderTrendChart() {
     return { x, y, glucose: item.glucose, time: item.timeFormatted };
   });
 
-  // Construct SVG path command
-  let d = "";
-  points.forEach((p, i) => {
-    d += (i === 0 ? "M" : " L") + ` ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
-  });
-  pathEl.setAttribute("d", d);
+  let lineD = "";
+  let areaD = "";
+
+  if (points.length === 1) {
+    const p = points[0];
+    // Immediate horizontal guide line so user immediately sees live trajectory on first reading
+    lineD = `M ${paddingX} ${p.y.toFixed(1)} L ${(width - paddingX).toFixed(1)} ${p.y.toFixed(1)}`;
+    areaD = `M ${paddingX} ${height - 15} L ${paddingX} ${p.y.toFixed(1)} L ${(width - paddingX).toFixed(1)} ${p.y.toFixed(1)} L ${(width - paddingX).toFixed(1)} ${height - 15} Z`;
+  } else {
+    points.forEach((p, i) => {
+      lineD += (i === 0 ? "M" : " L") + ` ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+    });
+    const first = points[0];
+    const last = points[points.length - 1];
+    areaD = `${lineD} L ${last.x.toFixed(1)} ${height - 15} L ${first.x.toFixed(1)} ${height - 15} Z`;
+  }
+
+  if (pathEl) pathEl.setAttribute("d", lineD);
+  if (areaEl) areaEl.setAttribute("d", areaD);
 
   // Dots
   let dotsHtml = "";
   points.forEach((p, i) => {
     const isLatest = i === points.length - 1;
-    const r = isLatest ? 5 : 3;
-    const fill = isLatest ? "#0284c7" : "#0ea5e9";
+    const r = isLatest ? 5.5 : 3.5;
+    const fill = isLatest ? "#0284c7" : "#38bdf8";
     dotsHtml += `
-      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="#ffffff" stroke-width="1.5">
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="#ffffff" stroke-width="1.8">
         <title>${p.glucose.toFixed(1)} mg/dL at ${p.time}</title>
       </circle>
     `;
     if (isLatest) {
       dotsHtml += `
-        <text x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle" font-family="var(--font-mono)">
+        <text x="${p.x.toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle" font-family="var(--font-mono)">
           ${p.glucose.toFixed(1)}
         </text>
       `;
     }
   });
-  dotsG.innerHTML = dotsHtml;
+  if (dotsG) dotsG.innerHTML = dotsHtml;
 }
 
 // -----------------------------------------------------------------------------
