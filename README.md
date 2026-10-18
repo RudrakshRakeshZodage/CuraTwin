@@ -1,165 +1,166 @@
-# CuraTwin — AI-Assisted Diabetes Monitoring & Digital Twin Dashboard
+# 🩺 CuraTwin: Real-Time AI Diabetes Digital Twin & Telemetry Dashboard
 
-**CuraTwin** is a complete, production-ready healthcare digital twin web application that combines **Manual Clinical Biomarker Inputs** with **Real-Time Wearable Sensor Telemetry** (CGM glucose, PPG heart rate, and IMU step tracking) to evaluate diabetes classification from a trained scikit-learn machine learning model deployed on FastAPI and hosted on Render.
+CuraTwin is a production-grade healthcare digital twin web application that merges **clinical biomarker evaluations** with **real-time wearable sensor streaming** (Continuous Glucose Monitoring CGM, PPG Heart Rate, and IMU step telemetry) for live diabetes risk prediction.
+
+It connects a responsive, glassmorphic client hosted on **GitHub Pages** to a containerized **FastAPI** machine learning backend deployed on **Render**, featuring automated 24/7 keep-alive execution with zero cold starts.
 
 ---
 
-## 1. System Architecture
+<p align="center">
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/scikit_learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn" />
+  <img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+  <img src="https://img.shields.io/badge/GitHub_Pages-222222?style=for-the-badge&logo=githubpages&logoColor=white" alt="GitHub Pages" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
+</p>
 
-CuraTwin decouples client-side presentation and sensor adapters from backend machine learning inference:
+---
+
+## 📐 Workflow & Telemetry Sequence Logic
 
 ```mermaid
-flowchart TD
-    subgraph Client["Frontend Client (GitHub Pages)"]
-        subgraph ModeA["Mode A: Manual Input"]
-            Form[Manual Biomarker Assessment]
+sequenceDiagram
+    autonumber
+    actor User as Patient / Clinician
+    participant UI as Frontend UI (index.html)
+    participant Adapter as SensorAdapter (Wearable IoT)
+    participant State as PatientStateManager (Digital Twin)
+    participant API as FastAPI Backend (Render)
+    participant ML as Scikit-Learn Model (diabetes_model.joblib)
+
+    alt Mode A: Manual Clinical Evaluation
+        User->>UI: Enter Patient Biomarkers (Age, BMI, HbA1c, Glucose)
+        UI->>UI: Client-side Clinical Bounds & BMI Calculation
+        User->>UI: Click "Evaluate Diabetes Risk"
+        UI->>API: POST /predict (15-feature JSON payload)
+        API->>API: Pydantic Validation & Categorical One-Hot Encoding
+        API->>ML: predict_proba() & predict()
+        ML-->>API: Probability (e.g. 0.0472) & Binary Classification (0)
+        API-->>UI: JSON Response with Dual Timestamps & Audit Log
+        UI->>User: Render Risk Card, Confidence Gauge & Interpretation
+    else Mode B: Continuous Wearable Sensor Streaming
+        User->>UI: Select "Watch / Sensor Input" Mode
+        User->>Adapter: Click "Start Telemetry Stream"
+        loop Every 2s / 4s / 8s Interval
+            Adapter->>UI: Emit Telemetry Packet (CGM, Heart Rate, Steps)
+            UI->>UI: Append Reading to Real-time SVG Trend Chart
+            UI->>State: Ingest Measurement & Update Digital Twin
         end
-        subgraph ModeB["Mode B: Watch / Sensor Stream"]
-            Adapter[SensorAdapter Interface]
-            Sim[SimulatedSensorAdapter CGM + Wearable]
-            State[PatientStateManager Digital Twin]
-            Chart[Continuous Glucose SVG Trend Chart]
-        end
-        App[app.js REST Client & Controller]
+        User->>UI: Trigger Model Inference on Latest Digital Twin State
+        UI->>API: POST /predict (Synced Baseline + Live Sensor Glucose)
+        API->>ML: Evaluate Live Physiological Risk
+        ML-->>API: Prediction Result
+        API-->>UI: Return Result with Sensor Device ID & Measurement Timestamp
+        UI->>User: Display Live Provenance Badges (Staleness Monitoring)
     end
-
-    subgraph Cloud["Backend ML API (Render Web Service)"]
-        API[FastAPI / Uvicorn Server]
-        Val[Pydantic Clinical Range Validator]
-        ModelLoader[DiabetesModelLoader Singleton]
-        Model[(diabetes_model.joblib)]
-    end
-
-    Form -->|Manual Biomarkers| App
-    Sim -->|Telemetry Packets| Adapter
-    Adapter -->|Glucose, HR, Steps| State
-    State -->|Rolling Glycemic Trajectory| Chart
-    State -->|Profile + Live Glucose| App
-
-    App -->|HTTPS POST /predict| API
-    API -->|Validate & Normalize| Val
-    Val -->|15-Feature DataFrame| ModelLoader
-    ModelLoader -->|predict & predict_proba| Model
-    Model -->|Binary Class & Probability| ModelLoader
-    ModelLoader -->|JSON Output with Timestamps| API
-    API -->|HTTPS JSON Response| App
-    App -->|Update Gauges, Audit & Trend Status| Client
 ```
 
 ---
 
-## 2. Core Capabilities & Dual Modality
+## 📸 Application Preview
 
-### Mode A: Manual Clinical Input
-- Enter standard clinical parameters: Gender, Age, Hypertension, Heart disease, Smoking history, BMI (with built-in BMI calculator drawer), HbA1c, and Blood glucose level.
-- One-click presets: Specification Sample, Low Risk Case, High Risk Case.
-- Full client and server-side validation against physiological limits.
-
-### Mode B: Watch / Sensor Streaming (Digital Twin)
-- Modular `SensorAdapter` architecture allowing physical devices (Web Bluetooth / BLE) or realistic simulated telemetry.
-- **Biomarker Telemetry:** Continuous Glucose (CGM), Heart Rate (PPG), and Step Activity (IMU).
-- **Controls:** Start, Pause, Resume, Stop, Reset, and configurable interval speed (2s, 4s, 8s).
-- **Continuous Glycemic Trend Chart:** Real-time SVG rolling trajectory with target glycemic range boundaries (70–140 mg/dL).
-- **Digital Twin Integration:** Merges fixed patient clinical baseline (Age, BMI, HbA1c, etc.) with dynamic live glucose streams before calling the model.
-- **Provenance & Staleness:** Clearly distinguishes **Measurement Timestamp** from **Prediction Timestamp**, with automatic alerts when newer sensor readings arrive.
+<p align="center">
+  <img src="assets/screenshots/curatwin_preview.png" alt="CuraTwin Dashboard Preview" width="100%" />
+</p>
 
 ---
 
-## 3. Render Deployment Settings
+## 🛠️ The CuraTwin Architecture & Engineering Highlights
 
-Follow these exact settings when setting up your service on [Render](https://dashboard.render.com):
+### 1. Dual-Modality Digital Twin Architecture
+Unlike static clinical risk forms, CuraTwin bridges **two distinct operating modes**:
+- **Mode A: Manual Clinical Assessment:** Comprehensive evaluation of primary metabolic biomarkers (Age, Gender, Hypertension, Heart Disease, Smoking History, BMI, HbA1c, and Fasting Glucose).
+- **Mode B: Wearable Sensor Streaming:** Continuous live telemetry tracking via an extensible `SensorAdapter` interface.
 
-### Step 1: Push Source Code to GitHub
-Ensure all backend files, models, and frontend code are pushed to your repository:
-```bash
-git add .
-git commit -m "feat: complete CuraTwin full-stack application with sensor streaming"
-git push origin main
-```
+> [!IMPORTANT]
+> **Continuous State Synthesis:** The `PatientStateManager` holds a digital twin of the patient. Fixed baseline biomarkers (Age, BMI, HbA1c) are dynamically merged with fluctuating wearable telemetry (blood glucose, pulse rate, activity steps) in real-time before dispatching inference requests to the cloud.
 
-### Step 2: Create Web Service on Render
-1. Log in to [dashboard.render.com](https://dashboard.render.com).
-2. Click **New +** $\rightarrow$ **Web Service**.
-3. Select **Build and deploy from a Git repository** and connect your `CuraTwin` repo.
-4. Fill in the exact configuration values below:
+- **Dynamic SVG Glycemic Trend Chart:** Real-time continuous rolling curve tracking glycemic drift against target therapeutic zones (70–140 mg/dL).
+- **Provenance & Staleness Tracking:** Clear visual distinction between **Measurement Timestamp** (when sensor recorded the biomarker) and **Prediction Timestamp** (when inference was performed), with automatic staleness warnings if new sensor data arrives.
 
-| Setting Field | Exact Value to Enter | Notes |
-|---|---|---|
-| **Name** | `curatwin-backend` | Or any unique name you prefer |
-| **Region** | `Oregon (US West)` | Or Frankfurt / Singapore |
-| **Branch** | `main` | Production branch |
-| **Root Directory** | `backend` | ⚠️ **Crucial:** Tells Render to run inside `backend/` |
-| **Runtime** | `Python 3` | Standard Python runtime |
-| **Build Command** | `pip install --upgrade pip && pip install -r requirements.txt` | Installs pinned FastAPI & scikit-learn packages |
-| **Start Command** | `uvicorn main:app --host 0.0.0.0 --port $PORT` | Starts the production server |
-| **Instance Type** | `Free` | Free tier supported |
+---
 
-### Step 3: Add Environment Variables
-Under **Environment Variables**, add:
-- `PYTHON_VERSION`: `3.11.9`
-- `ALLOWED_ORIGINS`: `https://rudrakshrakeshzodage.github.io,http://localhost:5500,http://localhost:3000`
+### 2. Machine Learning Pipeline & Model Training
 
-### Step 4: Health Check Path
-- Under **Advanced**, set **Health Check Path** to `/health`.
-- Click **Create Web Service**.
+The core intelligence is driven by a trained supervised machine learning model:
 
-### Step 5: Verify Deployment
-Once deployed, verify:
-`https://<your-service-name>.onrender.com/health`
-Expected JSON output:
-```json
-{
-  "status": "healthy",
-  "model_loaded": true,
-  "model_version": "1.0",
-  "estimator": "LogisticRegression",
-  "feature_count": 15
-}
+| Property | Details |
+|---|---|
+| **Training Dataset** | 100,000 healthcare patient records |
+| **Target Variable** | `diabetes` (0 = Negative / Non-diabetic, 1 = Positive / Diabetic) |
+| **Model Algorithm** | **Logistic Regression** (`LogisticRegression(max_iter=1000, penalty='l2')`) |
+| **Artifact Format** | Compressed Scikit-Learn artifact (`diabetes_model.joblib`) |
+| **Feature Dimensionality**| Exactly 15 input columns after one-hot categorical expansion |
+| **Scaling Strategy** | **Unscaled** — trained directly on raw physiological units (mg/dL, %, kg/m², years) |
+| **Inference Output** | Binary classification (`0` or `1`) + Sigmoid probability estimate (0.0 to 1.0) |
+
+#### Exact 15-Feature Order:
+```python
+[
+    'gender_Female', 'gender_Male', 'gender_Other',
+    'smoking_history_No Info', 'smoking_history_current', 'smoking_history_ever',
+    'smoking_history_former', 'smoking_history_never', 'smoking_history_not current',
+    'age', 'hypertension', 'heart_disease', 'bmi', 'HbA1c_level', 'blood_glucose_level'
+]
 ```
 
 ---
 
-## 4. GitHub Pages Frontend Deployment
+### 3. 24/7 Cloud Reliability & Zero Cold Starts
 
-1. Open `frontend/app.js` and set your live Render URL on line 18:
-   ```javascript
-   const API_BASE_URL = "https://<your-service-name>.onrender.com";
-   ```
-2. Push changes:
-   ```bash
-   git add frontend/app.js
-   git commit -m "chore: configure production Render API URL"
-   git push origin main
-   ```
-3. In your GitHub repository:
-   - Go to **Settings** $\rightarrow$ **Pages**.
-   - Under **Build and deployment**:
-     - Source: **Deploy from a branch**
-     - Branch: **`main`**
-     - Folder: **`/frontend`**
-   - Click **Save**.
-4. Open your live dashboard at `https://rudrakshrakeshzodage.github.io/CuraTwin/`.
+Free-tier cloud containers (like Render) automatically spin down after 15 minutes of inactivity. CuraTwin implements an automated keep-alive engine:
+
+- **GitHub Actions Scheduled Cron ([keep_alive.yml](.github/workflows/keep_alive.yml)):** Automatically pings the backend `/health` endpoint every **10 minutes**.
+- **Continuous Availability:** Render detects active traffic and never goes to sleep, ensuring instantaneous inference response times 24/7.
 
 ---
 
-## 5. Local Setup & Testing
+### 4. Client-Side Security & Immutability
 
-### Run Backend:
+- **Permanently Locked Endpoint:** The backend endpoint is hardcoded as an immutable frozen constant (`Object.freeze("https://curatwin-backend.onrender.com")`).
+- **Zero Exposure to End Users:** No configuration modals, input boxes, or settings dialogs exist in the DOM or UI, protecting internal infrastructure while providing a seamless, clean clinical experience.
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | Vanilla JavaScript (ES6+), Modern CSS3 (Glassmorphism, CSS Custom Properties), HTML5, SVG Trajectory Engine |
+| **IoT / Sensor Adapter** | Modular `SensorAdapter` Pattern, `SimulatedSensorAdapter` (CGM, PPG, IMU), `PatientStateManager` |
+| **Backend & API** | Python 3.11, FastAPI, Uvicorn (ASGI), Pydantic v2 (Strict clinical range validation) |
+| **Machine Learning** | Scikit-Learn, NumPy, Pandas, Joblib |
+| **Cloud Hosting** | **GitHub Pages** (Frontend) & **Render** (FastAPI Backend Container) |
+| **Automation** | GitHub Actions (24/7 Keep-Alive Workflow & Health Monitoring) |
+
+---
+
+## 🚀 Quickstart & Local Development
+
+### 1. Run FastAPI Backend Locally:
 ```bash
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate            # On Windows (or source venv/bin/activate on Linux/Mac)
 pip install -r backend/requirements.txt
-python -m uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
-### Run Frontend:
+### 2. Run Frontend Dashboard:
 ```bash
-python -m http.server 5500 --directory frontend
+python -m http.server 5500
 ```
-Navigate to `http://localhost:5500`.
+Open `http://localhost:5500` in any web browser.
 
-### Run Automated Tests:
+### 3. Run Automated Tests:
 ```bash
-python -m pytest tests/test_api.py -v
+pytest tests/test_api.py -v
 ```
-All 14 automated tests cover model validation, categorical encoding, sensor streaming payload ingestion, and mathematical parity.
+All **14 automated tests** validate clinical input range constraints, one-hot vector alignment, mathematical model parity, and sensor telemetry ingestion.
+
+---
+
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).
