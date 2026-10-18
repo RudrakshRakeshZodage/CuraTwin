@@ -16,26 +16,14 @@
  * =========================================================================
  */
 
-const API_BASE_URL = "YOUR_RENDER_BACKEND_URL";
+// Locked Production Backend API Endpoint (Immutable)
+const API_BASE_URL = Object.freeze("https://curatwin-backend.onrender.com");
 
 // -----------------------------------------------------------------------------
-// Effective Base URL Resolution (with Localhost & Custom Storage Fallback)
+// Effective Base URL Resolution (Locked to production service)
 // -----------------------------------------------------------------------------
 function getEffectiveApiBaseUrl() {
-  const storedOverride = window.localStorage.getItem("curatwin_api_url") || window.localStorage.getItem("diawatch_api_url");
-  if (storedOverride && storedOverride.trim().length > 0) {
-    return storedOverride.trim().replace(/\/+$/, "");
-  }
-
-  // If placeholder remains, auto-detect local testing environment
-  if (API_BASE_URL === "YOUR_RENDER_BACKEND_URL") {
-    const hostname = window.location.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "") {
-      return "http://localhost:8000";
-    }
-  }
-
-  return API_BASE_URL.replace(/\/+$/, "");
+  return API_BASE_URL;
 }
 
 // -----------------------------------------------------------------------------
@@ -166,15 +154,9 @@ const elements = {
   errorSuggestion: document.getElementById("error-suggestion"),
   retryBtn: document.getElementById("btn-retry-inference"),
 
-  // Header & Settings Modal
+  // Header & Status
   backendStatusBadge: document.getElementById("backend-status-badge"),
   backendStatusText: document.getElementById("backend-status-text"),
-  btnApiConfig: document.getElementById("btn-api-config"),
-  modalApiConfig: document.getElementById("modal-api-config"),
-  btnCloseModal: document.getElementById("btn-close-modal"),
-  inputApiUrl: document.getElementById("input-api-url"),
-  btnTestSaveApi: document.getElementById("btn-test-save-api"),
-  btnResetApiUrl: document.getElementById("btn-reset-api-url"),
 };
 
 // -----------------------------------------------------------------------------
@@ -581,12 +563,6 @@ function checkStalePredictionStatus() {
 // -----------------------------------------------------------------------------
 async function checkBackendHealth() {
   const baseUrl = getEffectiveApiBaseUrl();
-
-  if (baseUrl === "YOUR_RENDER_BACKEND_URL") {
-    updateBackendStatus("offline", "Backend URL Not Configured");
-    return false;
-  }
-
   updateBackendStatus("checking", "Connecting to Backend...");
 
   const controller = new AbortController();
@@ -679,17 +655,8 @@ async function runPrediction(payload) {
   lastSubmittedPayload = payload;
   const baseUrl = getEffectiveApiBaseUrl();
 
-  if (baseUrl === "YOUR_RENDER_BACKEND_URL") {
-    showError(
-      "Backend URL Not Configured",
-      "Please configure your deployed Render URL in app.js or click 'API Settings' to enter your backend URL.",
-      "In frontend/app.js, set: const API_BASE_URL = 'https://diawatch-ai-backend.onrender.com';"
-    );
-    return;
-  }
-
   setActiveState("loading");
-  elements.loadingStageText.textContent = `Connecting to ${baseUrl}...`;
+  elements.loadingStageText.textContent = "Connecting to CuraTwin AI Engine...";
 
   const coldStartTimer = setTimeout(() => {
     if (elements.loadingStageText) {
@@ -739,14 +706,14 @@ async function runPrediction(payload) {
 
     let title = "Inference Request Failed";
     let message = err.message || "An unexpected network error occurred.";
-    let hint = "If hosted on Render free tier, the backend spins down after inactivity. Please wait a moment and click Retry.";
+    let hint = "If the cloud service was idle, it may take a moment to wake up. Please wait a few seconds and click Retry.";
 
     if (err.name === "AbortError") {
       title = "Request Timed Out (60s)";
       message = "The backend service took too long to respond.";
-      hint = "Render free services typically require 30–60 seconds to boot on the initial request. Retrying now will likely succeed.";
+      hint = "Render free services typically require 30–60 seconds to boot on the initial request. Retrying now will succeed.";
     } else if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
-      message = `Cannot reach backend at ${baseUrl}. Ensure the service is active and CORS allows this domain.`;
+      message = "Cannot reach AI inference service. The backend server may be waking up from sleep mode.";
     }
 
     showError(title, message, hint);
@@ -899,45 +866,11 @@ function setupBmiCalculator() {
 }
 
 // -----------------------------------------------------------------------------
-// Settings Modal (API URL Configuration)
-// -----------------------------------------------------------------------------
-function setupSettingsModal() {
-  elements.btnApiConfig.addEventListener("click", () => {
-    elements.inputApiUrl.value = getEffectiveApiBaseUrl();
-    elements.modalApiConfig.showModal();
-  });
-
-  elements.btnCloseModal.addEventListener("click", () => {
-    elements.modalApiConfig.close();
-  });
-
-  elements.btnResetApiUrl.addEventListener("click", () => {
-    window.localStorage.removeItem("curatwin_api_url");
-    window.localStorage.removeItem("diawatch_api_url");
-    elements.inputApiUrl.value = API_BASE_URL === "YOUR_RENDER_BACKEND_URL" ? "http://localhost:8000" : API_BASE_URL;
-    checkBackendHealth();
-    elements.modalApiConfig.close();
-  });
-
-  elements.btnTestSaveApi.addEventListener("click", async () => {
-    const entered = elements.inputApiUrl.value.trim().replace(/\/+$/, "");
-    if (!entered) {
-      alert("Please enter a valid URL.");
-      return;
-    }
-    window.localStorage.setItem("curatwin_api_url", entered);
-    elements.modalApiConfig.close();
-    await checkBackendHealth();
-  });
-}
-
-// -----------------------------------------------------------------------------
 // Application Initialization
 // -----------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   setupModeSelector();
   setupBmiCalculator();
-  setupSettingsModal();
   setupSensorStreaming();
 
   // Presets definition
