@@ -1,7 +1,11 @@
 /**
  * =========================================================================
- * DiaWatch AI — Frontend Client Application
+ * CuraTwin — Full-Stack Healthcare Client Application
  * =========================================================================
+ * Dual-Modality Digital Twin Dashboard:
+ * 1. Manual Clinical Input (Full biomarker evaluation)
+ * 2. Wearable Sensor Streaming (Continuous CGM & PPG telemetry via SensorAdapter)
+ *
  * Configuration:
  * Replace YOUR_RENDER_BACKEND_URL below with your deployed Render service URL.
  * Example: const API_BASE_URL = "https://diawatch-ai-backend.onrender.com";
@@ -18,8 +22,7 @@ const API_BASE_URL = "YOUR_RENDER_BACKEND_URL";
 // Effective Base URL Resolution (with Localhost & Custom Storage Fallback)
 // -----------------------------------------------------------------------------
 function getEffectiveApiBaseUrl() {
-  // Check if user set a custom URL via the in-app settings modal
-  const storedOverride = window.localStorage.getItem("diawatch_api_url");
+  const storedOverride = window.localStorage.getItem("curatwin_api_url") || window.localStorage.getItem("diawatch_api_url");
   if (storedOverride && storedOverride.trim().length > 0) {
     return storedOverride.trim().replace(/\/+$/, "");
   }
@@ -36,17 +39,134 @@ function getEffectiveApiBaseUrl() {
 }
 
 // -----------------------------------------------------------------------------
+// Global Singletons: Sensor Adapter & Patient State
+// -----------------------------------------------------------------------------
+const sensorAdapter = new window.SimulatedSensorAdapter({
+  deviceId: "CuraWatch-B12",
+  intervalMs: 4000,
+});
+
+const patientState = new window.PatientStateManager({
+  gender: "Female",
+  age: 45,
+  hypertension: 0,
+  heart_disease: 0,
+  smoking_history: "never",
+  bmi: 27.5,
+  HbA1c_level: 5.8,
+});
+
+// Throttling tracker for live sensor predictions
+let lastPredictionTimestamp = 0;
+const MIN_SENSOR_PREDICTION_INTERVAL_MS = 10000; // Throttle to 10s to respect cloud API rate limits
+let isPredictionInFlight = false;
+let lastSubmittedPayload = null;
+
+// -----------------------------------------------------------------------------
 // DOM Element Cache
 // -----------------------------------------------------------------------------
 const elements = {
+  // Mode Selector Tabs
+  tabModeManual: document.getElementById("tab-mode-manual"),
+  tabModeSensor: document.getElementById("tab-mode-sensor"),
+  viewModeManual: document.getElementById("view-mode-manual"),
+  viewModeSensor: document.getElementById("view-mode-sensor"),
+  sensorTabLiveBadge: document.getElementById("sensor-tab-live-badge"),
+
+  // Manual Form Elements
   form: document.getElementById("diabetes-form"),
   submitBtn: document.getElementById("btn-submit-predict"),
   btnContentDefault: document.querySelector(".btn-content-default"),
   btnContentLoading: document.querySelector(".btn-content-loading"),
   resetBtn: document.getElementById("btn-reset-form"),
+  gender: document.getElementById("gender"),
+  age: document.getElementById("age"),
+  smokingHistory: document.getElementById("smoking_history"),
+  bmi: document.getElementById("bmi"),
+  hbA1c: document.getElementById("HbA1c_level"),
+  glucose: document.getElementById("blood_glucose_level"),
+
+  // Presets & BMI Drawer
+  btnPresetPrompt: document.getElementById("btn-preset-prompt"),
+  btnPresetHealthy: document.getElementById("btn-preset-healthy"),
+  btnPresetElevated: document.getElementById("btn-preset-elevated"),
+  btnToggleBmiCalc: document.getElementById("btn-toggle-bmi-calc"),
+  bmiCalculatorDrawer: document.getElementById("bmi-calculator-drawer"),
+  calcHeight: document.getElementById("calc-height"),
+  calcWeight: document.getElementById("calc-weight"),
+  btnApplyCalcBmi: document.getElementById("btn-apply-calc-bmi"),
+
+  // Sensor Streaming Controls & Status
+  sensorConnectionBadge: document.getElementById("sensor-connection-badge"),
+  sensorConnectionText: document.getElementById("sensor-connection-text"),
+  sensorDeviceName: document.getElementById("sensor-device-name"),
+  btnSensorStart: document.getElementById("btn-sensor-start"),
+  btnSensorPause: document.getElementById("btn-sensor-pause"),
+  labelPauseBtn: document.getElementById("label-pause-btn"),
+  btnSensorStop: document.getElementById("btn-sensor-stop"),
+  btnSensorReset: document.getElementById("btn-sensor-reset"),
+  selectStreamInterval: document.getElementById("select-stream-interval"),
+
+  // Live Telemetry Cards
+  telemetryGlucoseVal: document.getElementById("telemetry-glucose-val"),
+  telemetryTrendArrow: document.getElementById("telemetry-trend-arrow"),
+  telemetryGlucoseStatus: document.getElementById("telemetry-glucose-status"),
+  telemetryGlucoseTime: document.getElementById("telemetry-glucose-time"),
+  telemetryHrVal: document.getElementById("telemetry-hr-val"),
+  telemetryHrTime: document.getElementById("telemetry-hr-time"),
+  telemetryStepsVal: document.getElementById("telemetry-steps-val"),
+  telemetryStepsTime: document.getElementById("telemetry-steps-time"),
+
+  // Live Continuous Trend Chart (SVG)
+  svgChartPath: document.getElementById("svg-chart-path"),
+  svgChartDots: document.getElementById("svg-chart-dots"),
+  chartEmptyPlaceholder: document.getElementById("chart-empty-placeholder"),
+
+  // Linked Patient Profile
+  btnSyncProfileFromForm: document.getElementById("btn-sync-profile-from-form"),
+  chipAge: document.getElementById("chip-age"),
+  chipGender: document.getElementById("chip-gender"),
+  chipBmi: document.getElementById("chip-bmi"),
+  chipHba1c: document.getElementById("chip-hba1c"),
+  chipHyper: document.getElementById("chip-hyper"),
+  chipHd: document.getElementById("chip-hd"),
+  chipSmoking: document.getElementById("chip-smoking"),
+
+  // Live Prediction Policy & Trigger
+  chkAutoPredictStream: document.getElementById("chk-auto-predict-stream"),
+  btnPredictSensorNow: document.getElementById("btn-predict-sensor-now"),
+  telemetryLogTbody: document.getElementById("telemetry-log-tbody"),
+
+  // Results & Outcome Panel
+  stateIdle: document.getElementById("state-idle"),
+  stateLoading: document.getElementById("state-loading"),
+  stateSuccess: document.getElementById("state-success"),
+  stateError: document.getElementById("state-error"),
+  loadingStageText: document.getElementById("loading-stage-text"),
+  predictionBadge: document.getElementById("prediction-badge"),
+  outcomeIcon: document.getElementById("outcome-icon"),
+  outcomeLabel: document.getElementById("outcome-label"),
+  resultSourceBadge: document.getElementById("result-source-badge"),
+  probabilityBlock: document.getElementById("probability-block"),
+  metricProbabilityVal: document.getElementById("metric-probability-val"),
+  gaugeBarFill: document.getElementById("gauge-bar-fill"),
+  probabilityNote: document.getElementById("probability-note"),
+  auditSummaryGrid: document.getElementById("audit-summary-grid"),
+  auditDeviceId: document.getElementById("audit-device-id"),
+  provMeasurementTime: document.getElementById("prov-measurement-time"),
+  provPredictionTime: document.getElementById("prov-prediction-time"),
+  metaTimestamp: document.getElementById("meta-timestamp"),
+  stalePredictionNotice: document.getElementById("stale-prediction-notice"),
+  staleNoticeText: document.getElementById("stale-notice-text"),
+  btnReEvaluateStale: document.getElementById("btn-re-evaluate-stale"),
+
+  // Error Card Elements
+  errorTitle: document.getElementById("error-title"),
+  errorMessage: document.getElementById("error-message"),
+  errorSuggestion: document.getElementById("error-suggestion"),
   retryBtn: document.getElementById("btn-retry-inference"),
 
-  // Status Badges & Modals
+  // Header & Settings Modal
   backendStatusBadge: document.getElementById("backend-status-badge"),
   backendStatusText: document.getElementById("backend-status-text"),
   btnApiConfig: document.getElementById("btn-api-config"),
@@ -55,56 +175,10 @@ const elements = {
   inputApiUrl: document.getElementById("input-api-url"),
   btnTestSaveApi: document.getElementById("btn-test-save-api"),
   btnResetApiUrl: document.getElementById("btn-reset-api-url"),
-
-  // Presets
-  btnPresetPrompt: document.getElementById("btn-preset-prompt"),
-  btnPresetHealthy: document.getElementById("btn-preset-healthy"),
-  btnPresetElevated: document.getElementById("btn-preset-elevated"),
-
-  // BMI Helper
-  btnToggleBmiCalc: document.getElementById("btn-toggle-bmi-calc"),
-  bmiCalculatorDrawer: document.getElementById("bmi-calculator-drawer"),
-  calcHeight: document.getElementById("calc-height"),
-  calcWeight: document.getElementById("calc-weight"),
-  btnApplyCalcBmi: document.getElementById("btn-apply-calc-bmi"),
-
-  // Result States
-  stateIdle: document.getElementById("state-idle"),
-  stateLoading: document.getElementById("state-loading"),
-  stateSuccess: document.getElementById("state-success"),
-  stateError: document.getElementById("state-error"),
-  loadingStageText: document.getElementById("loading-stage-text"),
-
-  // Outcome Elements
-  predictionBadge: document.getElementById("prediction-badge"),
-  outcomeIcon: document.getElementById("outcome-icon"),
-  outcomeLabel: document.getElementById("outcome-label"),
-  probabilityBlock: document.getElementById("probability-block"),
-  metricProbabilityVal: document.getElementById("metric-probability-val"),
-  gaugeBarFill: document.getElementById("gauge-bar-fill"),
-  probabilityNote: document.getElementById("probability-note"),
-  auditSummaryGrid: document.getElementById("audit-summary-grid"),
-  metaTimestamp: document.getElementById("meta-timestamp"),
-
-  // Error Elements
-  errorTitle: document.getElementById("error-title"),
-  errorMessage: document.getElementById("error-message"),
-  errorSuggestion: document.getElementById("error-suggestion"),
-
-  // Form Inputs
-  gender: document.getElementById("gender"),
-  age: document.getElementById("age"),
-  smokingHistory: document.getElementById("smoking_history"),
-  bmi: document.getElementById("bmi"),
-  hbA1c: document.getElementById("HbA1c_level"),
-  glucose: document.getElementById("blood_glucose_level"),
 };
 
-// Store last submitted payload for easy retries
-let lastSubmittedPayload = null;
-
 // -----------------------------------------------------------------------------
-// UI State Switcher
+// UI State Management (Idle, Loading, Success, Error)
 // -----------------------------------------------------------------------------
 function setActiveState(stateName) {
   const states = {
@@ -129,12 +203,376 @@ function setActiveState(stateName) {
   // Toggle submit button loading visual
   if (stateName === "loading") {
     elements.submitBtn.disabled = true;
+    if (elements.btnPredictSensorNow) elements.btnPredictSensorNow.disabled = true;
     elements.btnContentDefault.setAttribute("hidden", "true");
     elements.btnContentLoading.removeAttribute("hidden");
   } else {
     elements.submitBtn.disabled = false;
+    if (elements.btnPredictSensorNow) elements.btnPredictSensorNow.disabled = false;
     elements.btnContentDefault.removeAttribute("hidden");
     elements.btnContentLoading.setAttribute("hidden", "true");
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Dual-Mode Switching Logic (Manual Clinical Input vs Watch / Sensor Stream)
+// -----------------------------------------------------------------------------
+function setupModeSelector() {
+  elements.tabModeManual.addEventListener("click", () => {
+    elements.tabModeManual.classList.add("active");
+    elements.tabModeManual.setAttribute("aria-selected", "true");
+    elements.tabModeSensor.classList.remove("active");
+    elements.tabModeSensor.setAttribute("aria-selected", "false");
+
+    elements.viewModeManual.removeAttribute("hidden");
+    elements.viewModeManual.classList.add("active");
+    elements.viewModeSensor.setAttribute("hidden", "true");
+    elements.viewModeSensor.classList.remove("active");
+  });
+
+  elements.tabModeSensor.addEventListener("click", () => {
+    elements.tabModeSensor.classList.add("active");
+    elements.tabModeSensor.setAttribute("aria-selected", "true");
+    elements.tabModeManual.classList.remove("active");
+    elements.tabModeManual.setAttribute("aria-selected", "false");
+
+    elements.viewModeSensor.removeAttribute("hidden");
+    elements.viewModeSensor.classList.add("active");
+    elements.viewModeManual.setAttribute("hidden", "true");
+    elements.viewModeManual.classList.remove("active");
+
+    // Automatically sync patient profile when switching to sensor mode
+    syncProfileFromForm();
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Patient Profile Synchronization (Manual Form -> Digital Twin Baseline)
+// -----------------------------------------------------------------------------
+function syncProfileFromForm() {
+  const gender = elements.gender.value || "Female";
+  const age = parseFloat(elements.age.value) || 45;
+  const smoking_history = elements.smokingHistory.value || "never";
+  const bmi = parseFloat(elements.bmi.value) || 27.5;
+  const HbA1c_level = parseFloat(elements.hbA1c.value) || 5.8;
+
+  const hyperRadio = document.querySelector('input[name="hypertension"]:checked');
+  const hypertension = hyperRadio ? parseInt(hyperRadio.value, 10) : 0;
+
+  const heartRadio = document.querySelector('input[name="heart_disease"]:checked');
+  const heart_disease = heartRadio ? parseInt(heartRadio.value, 10) : 0;
+
+  patientState.setProfile({
+    gender,
+    age,
+    hypertension,
+    heart_disease,
+    smoking_history,
+    bmi,
+    HbA1c_level,
+  });
+
+  // Update UI profile chips
+  elements.chipAge.textContent = `${age} yrs`;
+  elements.chipGender.textContent = gender;
+  elements.chipBmi.textContent = `${bmi}`;
+  elements.chipHba1c.textContent = `${HbA1c_level}%`;
+  elements.chipHyper.textContent = hypertension === 1 ? "Yes (1)" : "No (0)";
+  elements.chipHd.textContent = heart_disease === 1 ? "Yes (1)" : "No (0)";
+  elements.chipSmoking.textContent = smoking_history;
+}
+
+// -----------------------------------------------------------------------------
+// Sensor Adapter Event Wiring & Telemetry Handling
+// -----------------------------------------------------------------------------
+function setupSensorStreaming() {
+  // 1. Connection State Changes
+  sensorAdapter.on("stateChange", ({ newState, details }) => {
+    updateSensorStatusBadge(newState);
+
+    if (newState === window.SensorState.STREAMING) {
+      elements.btnSensorStart.disabled = true;
+      elements.btnSensorPause.disabled = false;
+      elements.labelPauseBtn.textContent = "Pause";
+      elements.btnSensorStop.disabled = false;
+      elements.sensorTabLiveBadge.removeAttribute("hidden");
+    } else if (newState === window.SensorState.PAUSED) {
+      elements.btnSensorStart.disabled = true;
+      elements.btnSensorPause.disabled = false;
+      elements.labelPauseBtn.textContent = "Resume";
+      elements.btnSensorStop.disabled = false;
+      elements.sensorTabLiveBadge.setAttribute("hidden", "true");
+    } else if (newState === window.SensorState.CONNECTED || newState === window.SensorState.DISCONNECTED) {
+      elements.btnSensorStart.disabled = false;
+      elements.btnSensorPause.disabled = true;
+      elements.labelPauseBtn.textContent = "Pause";
+      elements.btnSensorStop.disabled = true;
+      elements.sensorTabLiveBadge.setAttribute("hidden", "true");
+    }
+  });
+
+  // 2. Incoming Telemetry Measurements
+  sensorAdapter.on("measurement", (reading) => {
+    patientState.addMeasurement(reading);
+
+    // Update Live Telemetry Cards
+    updateTelemetryCards(reading);
+
+    // Add to Telemetry Event Log Table
+    appendTelemetryLog(reading);
+
+    // Update Continuous Glucose SVG Trend Chart
+    renderTrendChart();
+
+    // Check Prediction Stale Indicator
+    checkStalePredictionStatus();
+
+    // Automatic Live Prediction Policy
+    if (elements.chkAutoPredictStream.checked) {
+      const now = Date.now();
+      if (now - lastPredictionTimestamp >= MIN_SENSOR_PREDICTION_INTERVAL_MS && !isPredictionInFlight) {
+        evaluateSensorPrediction();
+      }
+    }
+  });
+
+  sensorAdapter.on("reset", () => {
+    patientState.clearHistory();
+    resetTelemetryDisplay();
+    renderTrendChart();
+    checkStalePredictionStatus();
+  });
+
+  sensorAdapter.on("error", (errData) => {
+    console.error("Sensor telemetry error:", errData);
+  });
+
+  // Button Controls
+  elements.btnSensorStart.addEventListener("click", () => {
+    syncProfileFromForm();
+    sensorAdapter.startStreaming();
+  });
+
+  elements.btnSensorPause.addEventListener("click", () => {
+    if (sensorAdapter.state === window.SensorState.STREAMING) {
+      sensorAdapter.pauseStreaming();
+    } else if (sensorAdapter.state === window.SensorState.PAUSED) {
+      sensorAdapter.resumeStreaming();
+    }
+  });
+
+  elements.btnSensorStop.addEventListener("click", () => {
+    sensorAdapter.stopStreaming();
+  });
+
+  elements.btnSensorReset.addEventListener("click", () => {
+    sensorAdapter.reset();
+  });
+
+  elements.selectStreamInterval.addEventListener("change", (e) => {
+    sensorAdapter.setIntervalMs(Number(e.target.value));
+  });
+
+  elements.btnSyncProfileFromForm.addEventListener("click", () => {
+    syncProfileFromForm();
+  });
+
+  elements.btnPredictSensorNow.addEventListener("click", () => {
+    evaluateSensorPrediction();
+  });
+
+  elements.btnReEvaluateStale.addEventListener("click", () => {
+    evaluateSensorPrediction();
+  });
+}
+
+function updateSensorStatusBadge(state) {
+  const badge = elements.sensorConnectionBadge;
+  const label = elements.sensorConnectionText;
+
+  badge.className = `sensor-status-badge sensor-state-${state.toLowerCase()}`;
+  label.textContent = state;
+}
+
+function updateTelemetryCards(reading) {
+  elements.telemetryGlucoseVal.textContent = reading.glucose.toFixed(1);
+  elements.telemetryGlucoseTime.textContent = reading.timeFormatted;
+
+  // Trend Arrow & Glycemic Category
+  const trendEl = elements.telemetryTrendArrow;
+  if (reading.glucoseTrend === "rising") {
+    trendEl.innerHTML = "&nearr; Rising";
+    trendEl.className = "trend-pill trend-rising";
+  } else if (reading.glucoseTrend === "falling") {
+    trendEl.innerHTML = "&searr; Falling";
+    trendEl.className = "trend-pill trend-falling";
+  } else {
+    trendEl.innerHTML = "&rarr; Stable";
+    trendEl.className = "trend-pill trend-stable";
+  }
+
+  const statusEl = elements.telemetryGlucoseStatus;
+  if (reading.glucose < 70) {
+    statusEl.textContent = "Hypoglycemic Alert (<70)";
+    statusEl.style.color = "#dc2626";
+  } else if (reading.glucose <= 140) {
+    statusEl.textContent = "Normal Target (70–140)";
+    statusEl.style.color = "#166534";
+  } else if (reading.glucose <= 180) {
+    statusEl.textContent = "Elevated Post-Prandial (140–180)";
+    statusEl.style.color = "#b45309";
+  } else {
+    statusEl.textContent = "Hyperglycemic Alert (>180)";
+    statusEl.style.color = "#dc2626";
+  }
+
+  // Heart Rate
+  elements.telemetryHrVal.textContent = reading.heartRate;
+  elements.telemetryHrTime.textContent = reading.timeFormatted;
+
+  // Steps
+  elements.telemetryStepsVal.textContent = reading.steps.toLocaleString();
+  elements.telemetryStepsTime.textContent = reading.timeFormatted;
+}
+
+function resetTelemetryDisplay() {
+  elements.telemetryGlucoseVal.textContent = "--";
+  elements.telemetryGlucoseTime.textContent = "--:--:--";
+  elements.telemetryTrendArrow.innerHTML = "&rarr; Stable";
+  elements.telemetryTrendArrow.className = "trend-pill trend-stable";
+  elements.telemetryGlucoseStatus.textContent = "Waiting for stream";
+  elements.telemetryGlucoseStatus.style.color = "var(--text-muted)";
+
+  elements.telemetryHrVal.textContent = "--";
+  elements.telemetryHrTime.textContent = "--:--:--";
+  elements.telemetryStepsVal.textContent = "--";
+  elements.telemetryStepsTime.textContent = "--:--:--";
+
+  elements.telemetryLogTbody.innerHTML = `
+    <tr class="empty-row"><td colspan="6">No telemetry received yet. Click Start Stream above.</td></tr>
+  `;
+}
+
+function appendTelemetryLog(reading) {
+  const tbody = elements.telemetryLogTbody;
+  const emptyRow = tbody.querySelector(".empty-row");
+  if (emptyRow) emptyRow.remove();
+
+  const tr = document.createElement("tr");
+  const trendSymbol = reading.glucoseTrend === "rising" ? "&nearr;" : reading.glucoseTrend === "falling" ? "&searr;" : "&rarr;";
+
+  tr.innerHTML = `
+    <td style="font-family: var(--font-mono);">${reading.timeFormatted}</td>
+    <td style="font-weight: 700; font-family: var(--font-mono);">${reading.glucose.toFixed(1)}</td>
+    <td><span class="trend-pill trend-${reading.glucoseTrend}">${trendSymbol} ${reading.glucoseTrend}</span></td>
+    <td>${reading.heartRate} BPM</td>
+    <td>${reading.steps.toLocaleString()}</td>
+    <td style="color: var(--primary-700); font-weight: 500;">${reading.deviceId}</td>
+  `;
+
+  tbody.insertBefore(tr, tbody.firstChild);
+
+  // Keep table at max 20 rows
+  while (tbody.children.length > 20) {
+    tbody.removeChild(tbody.lastChild);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Continuous Glucose Trend SVG Visualization
+// -----------------------------------------------------------------------------
+function renderTrendChart() {
+  const history = [...patientState.measurementHistory].reverse(); // chronological left to right
+  const pathEl = elements.svgChartPath;
+  const dotsG = elements.svgChartDots;
+  const placeholder = elements.chartEmptyPlaceholder;
+
+  if (history.length === 0) {
+    pathEl.setAttribute("d", "");
+    dotsG.innerHTML = "";
+    placeholder.removeAttribute("hidden");
+    return;
+  }
+
+  placeholder.setAttribute("hidden", "true");
+
+  const width = 520;
+  const height = 160;
+  const paddingX = 25;
+  const minG = 50;
+  const maxG = 220;
+
+  const points = history.map((item, idx) => {
+    const x = history.length === 1 ? width / 2 : paddingX + (idx / (history.length - 1)) * (width - paddingX * 2);
+    // Invert Y: higher glucose is closer to top (y = 15)
+    const norm = Math.max(0, Math.min(1, (item.glucose - minG) / (maxG - minG)));
+    const y = height - 15 - norm * (height - 30);
+    return { x, y, glucose: item.glucose, time: item.timeFormatted };
+  });
+
+  // Construct SVG path command
+  let d = "";
+  points.forEach((p, i) => {
+    d += (i === 0 ? "M" : " L") + ` ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  });
+  pathEl.setAttribute("d", d);
+
+  // Dots
+  let dotsHtml = "";
+  points.forEach((p, i) => {
+    const isLatest = i === points.length - 1;
+    const r = isLatest ? 5 : 3;
+    const fill = isLatest ? "#0284c7" : "#0ea5e9";
+    dotsHtml += `
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="#ffffff" stroke-width="1.5">
+        <title>${p.glucose.toFixed(1)} mg/dL at ${p.time}</title>
+      </circle>
+    `;
+    if (isLatest) {
+      dotsHtml += `
+        <text x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle" font-family="var(--font-mono)">
+          ${p.glucose.toFixed(1)}
+        </text>
+      `;
+    }
+  });
+  dotsG.innerHTML = dotsHtml;
+}
+
+// -----------------------------------------------------------------------------
+// Live Sensor ML Prediction Ingestion
+// -----------------------------------------------------------------------------
+async function evaluateSensorPrediction() {
+  if (isPredictionInFlight) return;
+
+  const buildResult = patientState.buildInferencePayload("sensor");
+  if (!buildResult.ready) {
+    showError(
+      "Cannot Run Inference on Stream",
+      buildResult.error,
+      "Ensure patient baseline profile is complete before evaluating live sensor glucose."
+    );
+    return;
+  }
+
+  isPredictionInFlight = true;
+  lastPredictionTimestamp = Date.now();
+
+  try {
+    await runPrediction(buildResult.payload);
+  } finally {
+    isPredictionInFlight = false;
+    checkStalePredictionStatus();
+  }
+}
+
+function checkStalePredictionStatus() {
+  if (patientState.isPredictionStale()) {
+    elements.stalePredictionNotice.removeAttribute("hidden");
+    const m = patientState.latestMeasurement;
+    elements.staleNoticeText.textContent = `Newer reading (${m.glucose.toFixed(1)} mg/dL at ${m.timeFormatted}) has arrived. Current prediction reflects earlier measurement.`;
+  } else {
+    elements.stalePredictionNotice.setAttribute("hidden", "true");
   }
 }
 
@@ -144,7 +582,6 @@ function setActiveState(stateName) {
 async function checkBackendHealth() {
   const baseUrl = getEffectiveApiBaseUrl();
 
-  // If using unchanged placeholder and not on localhost, prompt configuration
   if (baseUrl === "YOUR_RENDER_BACKEND_URL") {
     updateBackendStatus("offline", "Backend URL Not Configured");
     return false;
@@ -188,7 +625,7 @@ function updateBackendStatus(statusType, label) {
 }
 
 // -----------------------------------------------------------------------------
-// Form Handling & Validation
+// Manual Form Extraction & Validation
 // -----------------------------------------------------------------------------
 function extractFormData() {
   const gender = elements.gender.value;
@@ -229,11 +666,14 @@ function extractFormData() {
     bmi,
     HbA1c_level,
     blood_glucose_level,
+    source: "manual",
+    device_id: "Local Form",
+    measurement_timestamp: new Date().toISOString(),
   };
 }
 
 // -----------------------------------------------------------------------------
-// Model Inference Request
+// REST Inference Execution
 // -----------------------------------------------------------------------------
 async function runPrediction(payload) {
   lastSubmittedPayload = payload;
@@ -243,7 +683,7 @@ async function runPrediction(payload) {
     showError(
       "Backend URL Not Configured",
       "Please configure your deployed Render URL in app.js or click 'API Settings' to enter your backend URL.",
-      "In frontend/app.js, set: const API_BASE_URL = 'https://your-service.onrender.com';"
+      "In frontend/app.js, set: const API_BASE_URL = 'https://diawatch-ai-backend.onrender.com';"
     );
     return;
   }
@@ -251,7 +691,6 @@ async function runPrediction(payload) {
   setActiveState("loading");
   elements.loadingStageText.textContent = `Connecting to ${baseUrl}...`;
 
-  // Dynamic progress indicators for cold-starts on Render free tier
   const coldStartTimer = setTimeout(() => {
     if (elements.loadingStageText) {
       elements.loadingStageText.textContent = "Server is waking up from cold sleep (Render free tier may take 30–50s)...";
@@ -259,7 +698,6 @@ async function runPrediction(payload) {
   }, 5000);
 
   const controller = new AbortController();
-  // 60-second timeout to handle Render cold-start instances comfortably
   const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
@@ -286,14 +724,13 @@ async function runPrediction(payload) {
           errorDetail = errorJson.field_errors.map((e) => `${e.field}: ${e.message}`).join(", ");
         }
       } catch (parseErr) {
-        // Fallback to generic status text
+        // Fallback
       }
       throw new Error(errorDetail);
     }
 
     const data = await response.json();
     renderPredictionSuccess(data, payload);
-    // Refresh backend badge
     updateBackendStatus("online", "Backend Online");
   } catch (err) {
     clearTimeout(coldStartTimer);
@@ -317,18 +754,31 @@ async function runPrediction(payload) {
 }
 
 // -----------------------------------------------------------------------------
-// Render Outcome Display
+// Render Outcome Display & Provenance Tracking
 // -----------------------------------------------------------------------------
 function renderPredictionSuccess(result, inputs) {
   setActiveState("success");
 
   const isPositive = result.prediction === 1;
 
-  // Set outcome badge theme and label
+  // Outcome Badge
   elements.predictionBadge.className = `outcome-badge ${
     isPositive ? "outcome-positive" : "outcome-negative"
   }`;
   elements.outcomeLabel.textContent = result.label || (isPositive ? "Positive model classification" : "Negative model classification");
+
+  // Source Badge
+  const source = result.source || inputs.source || "manual";
+  const device = result.device_id || inputs.device_id || "Local Form";
+  if (source === "sensor") {
+    elements.resultSourceBadge.textContent = `Watch / Sensor (${device})`;
+    elements.resultSourceBadge.style.backgroundColor = "rgba(14, 165, 233, 0.15)";
+    elements.resultSourceBadge.style.color = "#0369a1";
+  } else {
+    elements.resultSourceBadge.textContent = "Manual Input";
+    elements.resultSourceBadge.style.backgroundColor = "rgba(0, 0, 0, 0.08)";
+    elements.resultSourceBadge.style.color = "inherit";
+  }
 
   // Outcome Icon
   if (isPositive) {
@@ -363,6 +813,7 @@ function renderPredictionSuccess(result, inputs) {
 
   // Audit / Feature Summary Grid
   const summaryData = result.input_summary || inputs;
+  elements.auditDeviceId.textContent = `Source: ${source.toUpperCase()} (${device})`;
   elements.auditSummaryGrid.innerHTML = `
     <div class="summary-item"><span class="summary-key">Gender:</span><span class="summary-val">${summaryData.gender}</span></div>
     <div class="summary-item"><span class="summary-key">Age:</span><span class="summary-val">${summaryData.age} yrs</span></div>
@@ -374,9 +825,19 @@ function renderPredictionSuccess(result, inputs) {
     <div class="summary-item"><span class="summary-key">Blood Glucose:</span><span class="summary-val">${summaryData.blood_glucose_level} mg/dL</span></div>
   `;
 
-  // Timestamp
-  const now = new Date();
-  elements.metaTimestamp.textContent = `Evaluated: ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+  // Provenance Dual Timestamps (Measurement vs Prediction Time)
+  const measIso = result.measurement_timestamp || inputs.measurement_timestamp;
+  const predIso = result.prediction_timestamp || new Date().toISOString();
+
+  elements.provMeasurementTime.textContent = measIso ? new Date(measIso).toLocaleTimeString() : "--:--:--";
+  elements.provPredictionTime.textContent = new Date(predIso).toLocaleTimeString();
+
+  // Record prediction in patient state manager for staleness verification
+  const measEpoch = measIso ? new Date(measIso).getTime() : Date.now();
+  patientState.recordPrediction(result, measEpoch);
+  checkStalePredictionStatus();
+
+  elements.metaTimestamp.textContent = `Inference completed on Render`;
 }
 
 function showError(title, message, hint) {
@@ -402,6 +863,8 @@ function loadPresetProfile(profile) {
 
   const heartRadio = document.querySelector(`input[name="heart_disease"][value="${profile.heart_disease}"]`);
   if (heartRadio) heartRadio.checked = true;
+
+  syncProfileFromForm();
 }
 
 // -----------------------------------------------------------------------------
@@ -431,6 +894,7 @@ function setupBmiCalculator() {
     elements.bmi.value = computedBmi;
     elements.bmiCalculatorDrawer.setAttribute("hidden", "true");
     elements.btnToggleBmiCalc.setAttribute("aria-expanded", "false");
+    syncProfileFromForm();
   });
 }
 
@@ -448,6 +912,7 @@ function setupSettingsModal() {
   });
 
   elements.btnResetApiUrl.addEventListener("click", () => {
+    window.localStorage.removeItem("curatwin_api_url");
     window.localStorage.removeItem("diawatch_api_url");
     elements.inputApiUrl.value = API_BASE_URL === "YOUR_RENDER_BACKEND_URL" ? "http://localhost:8000" : API_BASE_URL;
     checkBackendHealth();
@@ -460,19 +925,20 @@ function setupSettingsModal() {
       alert("Please enter a valid URL.");
       return;
     }
-    window.localStorage.setItem("diawatch_api_url", entered);
+    window.localStorage.setItem("curatwin_api_url", entered);
     elements.modalApiConfig.close();
     await checkBackendHealth();
   });
 }
 
 // -----------------------------------------------------------------------------
-// Application Initialization & Event Listeners
+// Application Initialization
 // -----------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  // Setup interactive helpers
+  setupModeSelector();
   setupBmiCalculator();
   setupSettingsModal();
+  setupSensorStreaming();
 
   // Presets definition
   const presetPrompt = {
@@ -512,11 +978,12 @@ document.addEventListener("DOMContentLoaded", () => {
   elements.btnPresetHealthy.addEventListener("click", () => loadPresetProfile(presetHealthy));
   elements.btnPresetElevated.addEventListener("click", () => loadPresetProfile(presetElevated));
 
-  // Form Submission
+  // Form Submission (Manual Mode)
   elements.form.addEventListener("submit", (evt) => {
     evt.preventDefault();
     const payload = extractFormData();
     if (payload) {
+      syncProfileFromForm();
       runPrediction(payload);
     }
   });
@@ -537,6 +1004,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Automatic Health Check on Launch
+  // Initialize synced patient profile
+  syncProfileFromForm();
+
+  // Health check on launch
   checkBackendHealth();
 });

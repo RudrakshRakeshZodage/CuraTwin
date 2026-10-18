@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CuraTwin — AI-Assisted Diabetes Monitoring &amp; Digital Twin Dashboard</title>
+  <meta name="description" content="AI-assisted diabetes monitoring and patient digital twin prototype combining manual clinical inputs with wearable sensor telemetry." />
+  
+  <!-- Modern Healthcare Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">CuraTwin</h1>
+          <p class="brand-subtitle">AI-Assisted Diabetes Monitoring &amp; Digital Twin Dashboard</p>
+        </div>
+      </div>
+
+      <!-- Backend Connection Status Indicator & API Config -->
+      <div class="header-actions">
+        <div id="backend-status-badge" class="status-badge status-checking" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="backend-status-text" class="status-label">Checking Backend...</span>
+        </div>
+        <button id="btn-api-config" class="btn-ghost" title="Configure API URL" aria-label="Configure API endpoint URL">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span class="btn-text">API Settings</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Research Disclaimer Banner -->
+  <div class="banner-disclaimer" role="alert">
+    <div class="banner-content">
+      <svg class="banner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <div>
+        <strong>Research &amp; Educational Prototype:</strong>
+        CuraTwin integrates empirical machine learning with clinical and simulated wearable streams. This dashboard does NOT provide medical diagnosis, clinical counsel, or emergency triage. Always consult a qualified physician.
+      </div>
+    </div>
+  </div>
+
+  <!-- API URL Configuration Modal (Hidden by default) -->
+  <dialog id="modal-api-config" class="modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Backend API Endpoint</h3>
+        <button id="btn-close-modal" class="btn-icon" aria-label="Close settings">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Configure the active REST API URL. For production deployments on GitHub Pages, point this to your Render service.
+      </p>
+      <div class="form-group">
+        <label for="input-api-url" class="field-label">API Base URL</label>
+        <input type="url" id="input-api-url" class="form-control" placeholder="https://diawatch-ai-backend.onrender.com" />
+        <span class="field-hint">e.g. <code>https://diawatch-ai-backend.onrender.com</code> or <code>http://localhost:8000</code></span>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-reset-api-url" class="btn-secondary">Reset to Default</button>
+        <button id="btn-test-save-api" class="btn-primary">Test &amp; Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Main Application Container -->
+  <main class="main-layout" role="main">
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Dual-Mode Patient Input & Telemetry Card -->
+      <section class="card form-card" aria-labelledby="form-heading">
+        <div class="card-header">
+          <div>
+            <h2 id="form-heading" class="card-title">Patient Biomarker &amp; Telemetry Stream</h2>
+            <p class="card-subtitle">Select input modality to evaluate machine learning classification.</p>
+          </div>
+        </div>
+
+        <!-- Mode Selector: Manual Clinical Input vs Watch / Sensor Input -->
+        <div class="mode-tabs-container" role="tablist" aria-label="Data Input Mode">
+          <button type="button" id="tab-mode-manual" class="mode-tab active" role="tab" aria-selected="true" aria-controls="view-mode-manual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            <span>Manual Input</span>
+          </button>
+          <button type="button" id="tab-mode-sensor" class="mode-tab" role="tab" aria-selected="false" aria-controls="view-mode-sensor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="7" />
+              <polyline points="12 9 12 12 13.5 13.5" />
+              <path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83" />
+            </svg>
+            <span>Watch / Sensor Input</span>
+            <span id="sensor-tab-live-badge" class="tab-live-badge" hidden>LIVE</span>
+          </button>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODE A: MANUAL CLINICAL INPUT (Existing Form Completely Preserved) -->
+        <!-- ================================================================= -->
+        <div id="view-mode-manual" class="mode-view active" role="tabpanel" aria-labelledby="tab-mode-manual">
+          
+          <!-- Quick Profile Presets -->
+          <div class="preset-bar">
+            <span class="preset-label">Quick Test Profiles:</span>
+            <div class="preset-buttons">
+              <button type="button" id="btn-preset-prompt" class="btn-pill" title="Load sample from project specification">Specification Sample</button>
+              <button type="button" id="btn-preset-healthy" class="btn-pill" title="Load healthy biomarker profile">Low Risk Case</button>
+              <button type="button" id="btn-preset-elevated" class="btn-pill" title="Load elevated risk biomarker profile">High Risk Case</button>
+            </div>
+          </div>
+
+          <form id="diabetes-form" novalidate>
+            <div class="form-grid">
+              
+              <!-- Gender -->
+              <div class="form-group">
+                <label for="gender" class="field-label">
+                  Gender <span class="required">*</span>
+                </label>
+                <select id="gender" name="gender" class="form-control" required aria-required="true">
+                  <option value="" disabled selected>Select biological sex</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="field-hint">Demographic category used during training</span>
+              </div>
+
+              <!-- Age -->
+              <div class="form-group">
+                <label for="age" class="field-label">
+                  Age <span class="required">*</span>
+                </label>
+                <div class="input-with-addon">
+                  <input type="number" id="age" name="age" class="form-control" min="1" max="120" step="1" placeholder="45" required aria-required="true" />
+                  <span class="input-addon">years</span>
+                </div>
+                <span class="field-hint">Patient chronological age (1 – 120)</span>
+              </div>
+
+              <!-- Hypertension Toggle -->
+              <div class="form-group">
+                <label class="field-label">
+                  Hypertension History <span class="required">*</span>
+                </label>
+                <div class="toggle-group" role="radiogroup" aria-label="Hypertension History">
+                  <label class="toggle-option">
+                    <input type="radio" name="hypertension" value="0" checked />
+                    <span class="toggle-pill">No (0)</span>
+                  </label>
+                  <label class="toggle-option">
+                    <input type="radio" name="hypertension" value="1" />
+                    <span class="toggle-pill">Yes (1)</span>
+                  </label>
+                </div>
+                <span class="field-hint">Clinical diagnosis of elevated blood pressure</span>
+              </div>
+
+              <!-- Heart Disease Toggle -->
+              <div class="form-group">
+                <label class="field-label">
+                  Heart Disease History <span class="required">*</span>
+                </label>
+                <div class="toggle-group" role="radiogroup" aria-label="Heart Disease History">
+                  <label class="toggle-option">
+                    <input type="radio" name="heart_disease" value="0" checked />
+                    <span class="toggle-pill">No (0)</span>
+                  </label>
+                  <label class="toggle-option">
+                    <input type="radio" name="heart_disease" value="1" />
+                    <span class="toggle-pill">Yes (1)</span>
+                  </label>
+                </div>
+                <span class="field-hint">Documented history of cardiovascular disease</span>
+              </div>
+
+              <!-- Smoking History -->
+              <div class="form-group full-width">
+                <label for="smoking_history" class="field-label">
+                  Smoking History <span class="required">*</span>
+                </label>
+                <select id="smoking_history" name="smoking_history" class="form-control" required aria-required="true">
+                  <option value="" disabled selected>Select smoking history status</option>
+                  <option value="never">never (Never smoked)</option>
+                  <option value="former">former (Quit smoking)</option>
+                  <option value="current">current (Currently active smoker)</option>
+                  <option value="ever">ever (Has smoked in the past)</option>
+                  <option value="not current">not current (Past smoker, not currently active)</option>
+                  <option value="No Info">No Info (Information unrecorded or unknown)</option>
+                </select>
+                <span class="field-hint">Categorical tobacco exposure status</span>
+              </div>
+
+              <!-- BMI (Body Mass Index) -->
+              <div class="form-group">
+                <div class="label-with-tool">
+                  <label for="bmi" class="field-label">
+                    Body Mass Index (BMI) <span class="required">*</span>
+                  </label>
+                  <button type="button" id="btn-toggle-bmi-calc" class="link-button" aria-expanded="false" aria-controls="bmi-calculator-drawer">
+                    Calculate BMI?
+                  </button>
+                </div>
+                <div class="input-with-addon">
+                  <input type="number" id="bmi" name="bmi" class="form-control" min="10.0" max="95.0" step="0.1" placeholder="27.5" required aria-required="true" />
+                  <span class="input-addon">kg/m²</span>
+                </div>
+                <span class="field-hint">Normal: 18.5–24.9 | Overweight: 25.0–29.9 | Obese: ≥30.0</span>
+
+                <!-- Inline Quick BMI Calculator Helper -->
+                <div id="bmi-calculator-drawer" class="calculator-drawer" hidden>
+                  <div class="calc-row">
+                    <div>
+                      <label for="calc-height" class="mini-label">Height (cm)</label>
+                      <input type="number" id="calc-height" class="form-control mini" placeholder="170" min="50" max="250" />
+                    </div>
+                    <div>
+                      <label for="calc-weight" class="mini-label">Weight (kg)</label>
+                      <input type="number" id="calc-weight" class="form-control mini" placeholder="75" min="20" max="300" />
+                    </div>
+                    <button type="button" id="btn-apply-calc-bmi" class="btn-mini-apply">Apply</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HbA1c Level -->
+              <div class="form-group">
+                <label for="HbA1c_level" class="field-label">
+                  HbA1c Level <span class="required">*</span>
+                </label>
+                <div class="input-with-addon">
+                  <input type="number" id="HbA1c_level" name="HbA1c_level" class="form-control" min="3.5" max="16.0" step="0.1" placeholder="5.8" required aria-required="true" />
+                  <span class="input-addon">%</span>
+                </div>
+                <span class="field-hint">Normal: &lt;5.7% | Prediabetes: 5.7–6.4% | Diabetes: ≥6.5%</span>
+              </div>
+
+              <!-- Blood Glucose Level -->
+              <div class="form-group full-width">
+                <label for="blood_glucose_level" class="field-label">
+                  Blood Glucose Level <span class="required">*</span>
+                </label>
+                <div class="input-with-addon">
+                  <input type="number" id="blood_glucose_level" name="blood_glucose_level" class="form-control" min="40" max="500" step="1" placeholder="110" required aria-required="true" />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Normal fasting: 70–99 mg/dL | Impaired: 100–125 mg/dL | Diabetes: ≥126 mg/dL</span>
+              </div>
+
+            </div>
+
+            <!-- Form Action Controls -->
+            <div class="form-actions">
+              <button type="button" id="btn-reset-form" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                Reset Form
+              </button>
+              <button type="submit" id="btn-submit-predict" class="btn-primary">
+                <span class="btn-content-default">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  Run Prediction
+                </span>
+                <span class="btn-content-loading" hidden>
+                  <span class="spinner"></span>
+                  Evaluating Model...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODE B: WATCH / SENSOR STREAMING PANEL -->
+        <!-- ================================================================= -->
+        <div id="view-mode-sensor" class="mode-view" role="tabpanel" aria-labelledby="tab-mode-sensor" hidden>
+          
+          <!-- Device Header & Connection Status -->
+          <div class="sensor-header-bar">
+            <div class="sensor-device-info">
+              <div class="device-icon-box" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="7" />
+                  <polyline points="12 9 12 12 13.5 13.5" />
+                  <path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83" />
+                </svg>
+              </div>
+              <div>
+                <div class="device-name-row">
+                  <span class="device-title" id="sensor-device-name">CuraWatch-B12</span>
+                  <span class="device-protocol-tag">Simulated CGM &amp; BLE Telemetry</span>
+                </div>
+                <div class="device-subtitle">Real-Time Physiological Biomarker Stream Adapter</div>
+              </div>
+            </div>
+
+            <!-- Real-Time Sensor State Badge -->
+            <div id="sensor-connection-badge" class="sensor-status-badge sensor-state-disconnected" role="status" aria-live="polite">
+              <span class="sensor-status-dot"></span>
+              <span id="sensor-connection-text">Disconnected</span>
+            </div>
+          </div>
+
+          <!-- Educational Hardware Notice -->
+          <div class="sensor-notice-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <div>
+              <strong>Simulated Sensor Stream:</strong> Consumer smartwatches do not measure blood glucose natively. This demonstration couples an emulated Continuous Glucose Monitor (CGM) with smartwatch PPG vitals via our clean <code>SensorAdapter</code> interface.
+            </div>
+          </div>
+
+          <!-- Stream Controls & Interval -->
+          <div class="stream-controls-card">
+            <div class="stream-buttons-group">
+              <button type="button" id="btn-sensor-start" class="btn-primary btn-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                <span>Start Stream</span>
+              </button>
+              <button type="button" id="btn-sensor-pause" class="btn-secondary btn-sm" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+                <span id="label-pause-btn">Pause</span>
+              </button>
+              <button type="button" id="btn-sensor-stop" class="btn-secondary btn-sm" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="4" width="16" height="16" />
+                </svg>
+                <span>Stop</span>
+              </button>
+              <button type="button" id="btn-sensor-reset" class="btn-ghost btn-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                <span>Reset</span>
+              </button>
+            </div>
+
+            <!-- Stream Speed Selector -->
+            <div class="stream-speed-selector">
+              <label for="select-stream-interval" class="speed-label">Interval:</label>
+              <select id="select-stream-interval" class="form-control-compact">
+                <option value="2000">2s (Fast Demo)</option>
+                <option value="4000" selected>4s (Standard)</option>
+                <option value="8000">8s (Clinical)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Real-Time Biomarker Telemetry Cards (3-column) -->
+          <div class="telemetry-grid">
+            
+            <!-- Live Blood Glucose Card -->
+            <div class="telemetry-card telemetry-glucose">
+              <div class="telemetry-header">
+                <span class="telemetry-label">Live Glucose (CGM)</span>
+                <span id="telemetry-trend-arrow" class="trend-pill trend-stable" title="Glucose trend direction">
+                  &rarr; Stable
+                </span>
+              </div>
+              <div class="telemetry-value-row">
+                <span id="telemetry-glucose-val" class="telemetry-number">--</span>
+                <span class="telemetry-unit">mg/dL</span>
+              </div>
+              <div class="telemetry-footer">
+                <span id="telemetry-glucose-status" class="telemetry-status-tag">Waiting for stream</span>
+                <span id="telemetry-glucose-time" class="telemetry-time">--:--:--</span>
+              </div>
+            </div>
+
+            <!-- Heart Rate Card -->
+            <div class="telemetry-card telemetry-hr">
+              <div class="telemetry-header">
+                <span class="telemetry-label">Heart Rate (PPG)</span>
+                <span class="pulse-heart-icon" aria-hidden="true">&hearts;</span>
+              </div>
+              <div class="telemetry-value-row">
+                <span id="telemetry-hr-val" class="telemetry-number">--</span>
+                <span class="telemetry-unit">BPM</span>
+              </div>
+              <div class="telemetry-footer">
+                <span class="telemetry-status-tag">Resting / Active</span>
+                <span id="telemetry-hr-time" class="telemetry-time">--:--:--</span>
+              </div>
+            </div>
+
+            <!-- Steps / Physical Activity Card -->
+            <div class="telemetry-card telemetry-steps">
+              <div class="telemetry-header">
+                <span class="telemetry-label">Daily Steps (IMU)</span>
+                <span class="activity-icon">&#128099;</span>
+              </div>
+              <div class="telemetry-value-row">
+                <span id="telemetry-steps-val" class="telemetry-number">--</span>
+                <span class="telemetry-unit">steps</span>
+              </div>
+              <div class="telemetry-footer">
+                <span class="telemetry-status-tag">Cumulative count</span>
+                <span id="telemetry-steps-time" class="telemetry-time">--:--:--</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Real-Time Glucose Continuous Trend Chart -->
+          <div class="trend-chart-card">
+            <div class="trend-chart-header">
+              <div>
+                <h4 class="trend-chart-title">Continuous Glucose Telemetry Trend</h4>
+                <p class="trend-chart-subtitle">Real-time rolling trajectory with target glycemic boundaries</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-target"><span class="legend-box"></span> Target (70–140 mg/dL)</span>
+                <span class="legend-cgm"><span class="legend-line"></span> Sensor Stream</span>
+              </div>
+            </div>
+            
+            <div class="trend-chart-viewport" id="trend-chart-viewport">
+              <svg id="svg-glucose-trend" class="trend-svg" viewBox="0 0 520 160" preserveAspectRatio="none">
+                <!-- Target Normal Glycemic Range Band -->
+                <rect x="0" y="45" width="520" height="65" fill="#f0fdf4" opacity="0.8" />
+                <line x1="0" y1="45" x2="520" y2="45" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="3,3" />
+                <line x1="0" y1="110" x2="520" y2="110" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="3,3" />
+                
+                <!-- Guidelines & Labels -->
+                <text x="6" y="40" font-size="9" fill="#166534" font-family="sans-serif">140 mg/dL (Elevated)</text>
+                <text x="6" y="125" font-size="9" fill="#166534" font-family="sans-serif">70 mg/dL (Baseline)</text>
+
+                <!-- Dynamic Path & Points (Populated by app.js) -->
+                <path id="svg-chart-path" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="" />
+                <g id="svg-chart-dots"></g>
+              </svg>
+              <div id="chart-empty-placeholder" class="chart-placeholder">
+                Connect and start stream to plot real-time biomarker readings.
+              </div>
+            </div>
+          </div>
+
+          <!-- Linked Patient Clinical Profile (ML Requirement) -->
+          <div class="linked-profile-card">
+            <div class="linked-profile-header">
+              <div>
+                <h4 class="linked-profile-title">Linked Patient Baseline Profile</h4>
+                <p class="linked-profile-desc">
+                  The trained ML model requires 8 clinical biomarkers. Sensor streams update blood glucose; baseline demographic features are supplied by this profile.
+                </p>
+              </div>
+              <button type="button" id="btn-sync-profile-from-form" class="btn-ghost btn-sm" title="Sync current manual form values into linked profile">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                </svg>
+                <span>Sync from Form</span>
+              </button>
+            </div>
+
+            <div class="linked-profile-grid" id="linked-profile-summary-grid">
+              <!-- Dynamically mirrored from patient profile -->
+              <div class="profile-chip"><span class="chip-k">Age:</span> <span class="chip-v" id="chip-age">45 yrs</span></div>
+              <div class="profile-chip"><span class="chip-k">Gender:</span> <span class="chip-v" id="chip-gender">Female</span></div>
+              <div class="profile-chip"><span class="chip-k">BMI:</span> <span class="chip-v" id="chip-bmi">27.5</span></div>
+              <div class="profile-chip"><span class="chip-k">HbA1c:</span> <span class="chip-v" id="chip-hba1c">5.8%</span></div>
+              <div class="profile-chip"><span class="chip-k">Hypertension:</span> <span class="chip-v" id="chip-hyper">No (0)</span></div>
+              <div class="profile-chip"><span class="chip-k">Heart Disease:</span> <span class="chip-v" id="chip-hd">No (0)</span></div>
+              <div class="profile-chip"><span class="chip-k">Smoking:</span> <span class="chip-v" id="chip-smoking">never</span></div>
+            </div>
+          </div>
+
+          <!-- Prediction Ingestion Policy & Manual Evaluate Button -->
+          <div class="sensor-prediction-bar">
+            <div class="policy-checkbox-group">
+              <label class="policy-toggle">
+                <input type="checkbox" id="chk-auto-predict-stream" checked />
+                <span class="policy-label">
+                  <strong>Live Prediction Policy:</strong> Auto-evaluate model when new glucose arrives (throttled to 10s)
+                </span>
+              </label>
+            </div>
+            <button type="button" id="btn-predict-sensor-now" class="btn-primary btn-sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              <span>Predict with Latest Reading</span>
+            </button>
+          </div>
+
+          <!-- Recent Sensor Telemetry Stream Log Table -->
+          <div class="telemetry-log-card">
+            <h4 class="telemetry-log-title">Live Sensor Event Log</h4>
+            <div class="telemetry-table-wrapper">
+              <table class="telemetry-table" aria-label="Recent Sensor Telemetry Measurements">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Glucose (mg/dL)</th>
+                    <th>Trend</th>
+                    <th>Heart Rate</th>
+                    <th>Steps</th>
+                    <th>Provenance</th>
+                  </tr>
+                </thead>
+                <tbody id="telemetry-log-tbody">
+                  <tr class="empty-row">
+                    <td colspan="6">No telemetry received yet. Click Start Stream above.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Model Results, Inference Details & Provenance Card -->
+      <section class="card results-card" aria-labelledby="results-heading">
+        <div class="card-header">
+          <div>
+            <h2 id="results-heading" class="card-title">Inference &amp; Prediction Outcome</h2>
+            <p class="card-subtitle">Direct evaluation from the Python ML backend on Render.</p>
+          </div>
+        </div>
+
+        <div id="results-container" class="results-body" aria-live="polite">
+          
+          <!-- INITIAL IDLE STATE -->
+          <div id="state-idle" class="result-state active">
+            <div class="empty-state">
+              <div class="empty-icon" aria-hidden="true">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18" />
+                  <path d="M9 21V9" />
+                </svg>
+              </div>
+              <h3 class="empty-title">Awaiting Biomarker Inference</h3>
+              <p class="empty-desc">
+                Provide patient clinical biomarkers via Manual Input, or start the Watch / Sensor Stream to evaluate live model predictions.
+              </p>
+              <div class="empty-checklist">
+                <div class="checklist-item">
+                  <span class="check-bullet">&#10003;</span>
+                  <span>Evaluated by fitted scikit-learn <code>LogisticRegression</code></span>
+                </div>
+                <div class="checklist-item">
+                  <span class="check-bullet">&#10003;</span>
+                  <span>Supports Manual Clinical Entry or Live Sensor Telemetry</span>
+                </div>
+                <div class="checklist-item">
+                  <span class="check-bullet">&#10003;</span>
+                  <span>Strict measurement vs prediction timestamp differentiation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOADING STATE -->
+          <div id="state-loading" class="result-state" hidden>
+            <div class="loading-state">
+              <div class="pulse-ring"></div>
+              <h3 class="loading-title">Communicating with Backend...</h3>
+              <p id="loading-stage-text" class="loading-desc">Sending REST payload to Render FastAPI server...</p>
+              <div class="skeleton-card">
+                <div class="skeleton-line full"></div>
+                <div class="skeleton-line half"></div>
+                <div class="skeleton-line three-quarter"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUCCESS RESULT STATE -->
+          <div id="state-success" class="result-state" hidden>
+            <div class="result-content">
+              
+              <!-- Stale Prediction Notice (Shown when newer sensor reading exists) -->
+              <div id="stale-prediction-notice" class="notice-stale" hidden>
+                <div class="notice-stale-content">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <div>
+                    <span id="stale-notice-text">A newer sensor reading has arrived. This outcome reflects previous biomarkers.</span>
+                  </div>
+                </div>
+                <button type="button" id="btn-re-evaluate-stale" class="btn-mini-reevaluate">Re-evaluate</button>
+              </div>
+
+              <!-- Classification Badge & Label -->
+              <div id="prediction-badge" class="outcome-badge outcome-negative">
+                <div class="badge-icon" id="outcome-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="outcome-header-row">
+                    <span class="outcome-tag">Model Classification</span>
+                    <span id="result-source-badge" class="badge-source">Manual Input</span>
+                  </div>
+                  <h3 id="outcome-label" class="outcome-title">Negative model classification</h3>
+                </div>
+              </div>
+
+              <!-- Probability Gauge & Metric Display -->
+              <div class="metric-card" id="probability-block">
+                <div class="metric-header">
+                  <span class="metric-label">Model Statistical Probability (Class 1)</span>
+                  <span id="metric-probability-val" class="metric-value">4.72%</span>
+                </div>
+                <div class="gauge-bar-track">
+                  <div id="gauge-bar-fill" class="gauge-bar-fill" style="width: 4.72%;"></div>
+                </div>
+                <div class="gauge-scale">
+                  <span>0% (Low likelihood)</span>
+                  <span>50% Threshold</span>
+                  <span>100% (High likelihood)</span>
+                </div>
+                <p id="probability-note" class="metric-explanation">
+                  Estimated probability output by the logistic regression sigmoid function.
+                </p>
+              </div>
+
+              <!-- Input Features Echo / Audit Table -->
+              <div class="audit-block">
+                <div class="audit-header-row">
+                  <h4 class="audit-title">Biomarker Feature Audit</h4>
+                  <span id="audit-device-id" class="audit-device-tag">Device: Local Form</span>
+                </div>
+                <div class="summary-grid" id="audit-summary-grid">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+
+              <!-- Dual Timestamps Provenance Footer -->
+              <div class="provenance-footer">
+                <div class="prov-item">
+                  <span class="prov-k">Measurement Time:</span>
+                  <span class="prov-v" id="prov-measurement-time">--:--:--</span>
+                </div>
+                <div class="prov-item">
+                  <span class="prov-k">Prediction Time:</span>
+                  <span class="prov-v" id="prov-prediction-time">--:--:--</span>
+                </div>
+              </div>
+
+              <!-- Model Metadata Footer -->
+              <div class="result-meta">
+                <span>Model: <strong>LogisticRegression v1.0</strong></span>
+                <span id="meta-timestamp">Evaluated on Render</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ERROR STATE -->
+          <div id="state-error" class="result-state" hidden>
+            <div class="error-state">
+              <div class="error-icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h3 id="error-title" class="error-title">Inference Request Failed</h3>
+              <p id="error-message" class="error-desc">
+                Could not establish communication with the FastAPI backend service.
+              </p>
+              <div id="error-suggestion" class="error-hint-box">
+                <strong>Troubleshooting Render Free Tier:</strong> If the backend has been idle, Render automatically spins down free instances. The first wake-up request takes 30 to 60 seconds. Please wait a moment and click Retry.
+              </div>
+              <div class="error-actions">
+                <button type="button" id="btn-retry-inference" class="btn-primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
+                  Retry Prediction
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Technical Information Section -->
+  <section class="info-section">
+    <div class="info-container">
+      <div class="info-grid">
+        <div class="info-card">
+          <h4 class="info-heading">Fitted ML Architecture</h4>
+          <p class="info-text">
+            Trained on 100,000 patient records using scikit-learn <code>LogisticRegression(penalty='l2', max_iter=1000)</code>. Evaluates 15 one-hot encoded and continuous clinical features.
+          </p>
+        </div>
+        <div class="info-card">
+          <h4 class="info-heading">Dual-Modality Cloud Pipeline</h4>
+          <p class="info-text">
+            Combines manual clinical entry with real-time wearable sensor streaming via a decoupled <code>SensorAdapter</code>. All ML inference is executed strictly on the Python FastAPI backend.
+          </p>
+        </div>
+        <div class="info-card">
+          <h4 class="info-heading">Medical Limitations</h4>
+          <p class="info-text">
+            Probability output reflects uncalibrated logistic sigmoid scores. Not a diagnostic tool or clinical risk calculator. Intended solely for machine learning research.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>&copy; 2026 CuraTwin Research. Engineered with Python, FastAPI, scikit-learn, and Vanilla Web Technologies.</p>
+      <p class="footer-disclaimer">Strictly for educational and research demonstration purposes.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="./sensorAdapter.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
