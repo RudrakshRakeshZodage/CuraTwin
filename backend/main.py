@@ -227,12 +227,28 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
     else:
         meal_desc = raw_query or "Balanced diabetic-friendly meal plate"
 
+    bmi = payload.patient_bmi if payload.patient_bmi and payload.patient_bmi > 10 else 27.5
+    # Clinical caloric limit per meal based on metabolic BMI brackets
+    if bmi >= 30.0:
+        recommended_max_cals = 500.0
+    elif bmi >= 25.0:
+        recommended_max_cals = 600.0
+    else:
+        recommended_max_cals = 650.0
+
     prompt = (
-        f"You are a clinical diabetic nutrition AI for CuraTwin. Analyze the nutritional breakdown of this meal:\n"
+        f"You are a clinical diabetic nutrition AI for CuraTwin. Analyze this meal for a diabetic patient with BMI {bmi:.1f}:\n"
         f"'{meal_desc}'\n\n"
         f"Estimate the realistic portion, total calories, macronutrients (in grams), dietary fiber (in grams), "
         f"glycemic index category ('Low GI', 'Moderate GI', or 'High GI'), meal category ('Breakfast', 'Lunch', 'Dinner', or 'Snack'), "
-        f"and itemized plate components with their individual calories, protein, carbs, and fats.\n"
+        f"and itemized plate components.\n"
+        f"ALSO provide:\n"
+        f"1. 'clinical_insight': A precise 1-sentence clinical metabolic summary of how this meal impacts blood glucose, insulin sensitivity, and glycemic response.\n"
+        f"2. 'healthier_alternative': A specific healthier diabetic-friendly swap/alternative for this meal, including:\n"
+        f"   - 'alternative_dish': Name of the healthier alternative dish\n"
+        f"   - 'calorie_reduction': Approximate calories saved (float)\n"
+        f"   - 'carb_reduction': Approximate carbohydrate grams reduced (float)\n"
+        f"   - 'explanation': Why this alternative is clinically superior for diabetes and prevents glycemic spikes\n\n"
         f"Return ONLY a valid JSON object matching this schema:\n"
         f"{{\n"
         f'  "meal_name": "Short descriptive name",\n'
@@ -243,6 +259,13 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
         f'  "total_fats": float,\n'
         f'  "fiber": float,\n'
         f'  "glycemic_index": "Low GI, Moderate GI, or High GI",\n'
+        f'  "clinical_insight": "string",\n'
+        f'  "healthier_alternative": {{\n'
+        f'    "alternative_dish": "string",\n'
+        f'    "calorie_reduction": float,\n'
+        f'    "carb_reduction": float,\n'
+        f'    "explanation": "string"\n'
+        f"  }},\n"
         f'  "items": [\n'
         f'    {{"item_name": "string", "total_calories": float, "total_protein": float, "total_carbs": float, "total_fats": float}}\n'
         f"  ]\n"
@@ -281,6 +304,12 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
             resp_body = json.loads(resp.read().decode("utf-8"))
             content = resp_body["choices"][0]["message"]["content"]
             parsed_json = json.loads(content)
+            
+            # Apply clinical BMI intake threshold rules
+            cals = float(parsed_json.get("total_calories", 0.0))
+            parsed_json["recommended_max_meal_calories"] = recommended_max_cals
+            parsed_json["bmi_meal_limit_exceeded"] = cals > recommended_max_cals
+            
             return FoodAnalysisResponse(**parsed_json)
     except urllib.error.HTTPError as http_err:
         err_msg = http_err.read().decode("utf-8", errors="replace")

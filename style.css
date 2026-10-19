@@ -3152,4 +3152,132 @@ body {
   }
 }
 
+/* Clinical BMI Intake Limit & Healthier Alternative Styles */
+.bmi-limit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border-light);
+}
+
+.bmi-limit-banner.banner-optimal {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #065f46;
+}
+
+.bmi-limit-banner.banner-exceeded {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #991b1b;
+}
+
+.limit-tag {
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.banner-optimal .limit-tag {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.banner-exceeded .limit-tag {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+/* Event Alternative Card (Timeline & Modal) */
+.event-alternative-box {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(6, 182, 212, 0.06));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-left: 3px solid #10b981;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.95rem;
+  margin-top: 0.65rem;
+}
+
+.alt-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.alt-title-label {
+  font-weight: 700;
+  color: #047857;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.alt-dish-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.84rem;
+}
+
+.alt-savings-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  margin-left: auto;
+}
+
+.alt-desc-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.btn-apply-alternative {
+  margin-top: 0.5rem;
+  background-color: transparent;
+  border: 1px solid #10b981;
+  color: #047857;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-apply-alternative:hover {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* Limit Warning Pill */
+.metric-pill.metric-warning-limit {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+  font-weight: 700;
+}
+
+.metric-pill.metric-optimal-limit {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+  font-weight: 600;
+}
+
+
 

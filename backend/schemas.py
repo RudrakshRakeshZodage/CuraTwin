@@ -213,9 +213,17 @@ class FoodItemBreakdown(BaseModel):
     total_fats: float = 0.0
 
 
+class FoodAlternative(BaseModel):
+    alternative_dish: str = Field(..., description="Recommended healthier diabetic meal alternative")
+    calorie_reduction: Optional[float] = Field(None, description="Estimated calories saved with this alternative")
+    carb_reduction: Optional[float] = Field(None, description="Estimated grams of carbohydrates reduced")
+    explanation: str = Field(..., description="Clinical reason why this alternative is better for glycemic stability")
+
+
 class FoodAnalysisRequest(BaseModel):
     query: str = Field(..., description="Meal description, dish name, or food items")
     image_name: Optional[str] = None
+    patient_bmi: Optional[float] = Field(27.5, description="Patient BMI for personalized intake limit analysis")
 
 
 class FoodAnalysisResponse(BaseModel):
@@ -227,4 +235,8 @@ class FoodAnalysisResponse(BaseModel):
     total_fats: float
     fiber: float = 0.0
     glycemic_index: str = "Moderate GI"
+    clinical_insight: Optional[str] = Field(None, description="Clinical metabolic assessment of the meal")
+    healthier_alternative: Optional[FoodAlternative] = Field(None, description="Healthier substitute to prevent glycemic spikes")
+    bmi_meal_limit_exceeded: Optional[bool] = Field(False, description="Flag indicating if meal exceeds recommended limit for patient BMI")
+    recommended_max_meal_calories: Optional[float] = Field(None, description="Personalized maximum meal calories for patient BMI")
     items: List[FoodItemBreakdown] = []

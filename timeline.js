@@ -28,6 +28,13 @@ const FOOD_KNOWLEDGE_BASE = [
     total_fats: 24,
     fiber: 8,
     glycemic_index: "Low GI",
+    clinical_insight: "Rich in monounsaturated oleic acid and dietary fiber, promoting sustained satiety with minimal postprandial glycemic impact.",
+    healthier_alternative: {
+      alternative_dish: "Avocado on 100% Sprouted Ezekiel Bread",
+      calorie_reduction: 35,
+      carb_reduction: 8,
+      explanation: "Sprouted grains lower starch bioavailability and maximize digestible fiber, flattening the postprandial glucose curve."
+    },
     items: [
       { item_name: "Whole grain sourdough (1 thick slice)", total_calories: 140, total_protein: 5, total_carbs: 24, total_fats: 2 },
       { item_name: "Fresh sliced Hass avocado (1/2 fruit)", total_calories: 160, total_protein: 2, total_carbs: 4, total_fats: 15 },
@@ -35,6 +42,30 @@ const FOOD_KNOWLEDGE_BASE = [
       { item_name: "Extra virgin olive oil & chili flakes", total_calories: 13, total_protein: 0, total_carbs: 0, total_fats: 1.5 },
     ],
     imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=500&auto=format&fit=crop&q=80"
+  },
+  {
+    name: "Classic Chicken Burger with Mayo & Cheese",
+    category: "Lunch",
+    total_calories: 580,
+    total_protein: 32,
+    total_carbs: 48,
+    total_fats: 28,
+    fiber: 2,
+    glycemic_index: "Moderate GI",
+    clinical_insight: "Refined flour hamburger bun combined with high saturated fats triggers rapid glycemic absorption and delayed postprandial glucose clearance.",
+    healthier_alternative: {
+      alternative_dish: "Grilled Chicken Lettuce Wrap with Greek Yogurt Herb Dressing",
+      calorie_reduction: 210,
+      carb_reduction: 32,
+      explanation: "Replacing the processed white flour bun with crisp romaine leaves eliminates 32g of rapid carbohydrates, preventing an insulin surge."
+    },
+    items: [
+      { item_name: "Toasted white hamburger bun", total_calories: 160, total_protein: 5, total_carbs: 30, total_fats: 2 },
+      { item_name: "Grilled chicken breast patty", total_calories: 220, total_protein: 24, total_carbs: 0, total_fats: 5 },
+      { item_name: "Real mayonnaise (1 tbsp)", total_calories: 100, total_protein: 0, total_carbs: 0, total_fats: 11 },
+      { item_name: "Cheddar cheese slice & pickles", total_calories: 100, total_protein: 3, total_carbs: 2, total_fats: 9 }
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80"
   },
   {
     name: "Mediterranean Grilled Chicken Salad",
@@ -45,6 +76,13 @@ const FOOD_KNOWLEDGE_BASE = [
     total_fats: 22,
     fiber: 6,
     glycemic_index: "Low GI",
+    clinical_insight: "High-fiber raw cruciferous vegetables paired with lean poultry deliver an optimal low-glycemic profile ideal for insulin sensitivity.",
+    healthier_alternative: {
+      alternative_dish: "Kale & Wild Salmon Power Salad with Olive Oil Dressing",
+      calorie_reduction: 40,
+      carb_reduction: 5,
+      explanation: "Infuses anti-inflammatory omega-3 EPA/DHA fatty acids, protecting microvascular endothelium against diabetic complications."
+    },
     items: [
       { item_name: "Herb-marinated grilled chicken breast (180g)", total_calories: 240, total_protein: 38, total_carbs: 0, total_fats: 5 },
       { item_name: "Romaine, cucumber, cherry tomatoes & kalamata olives", total_calories: 75, total_protein: 2, total_carbs: 10, total_fats: 3 },
@@ -62,6 +100,13 @@ const FOOD_KNOWLEDGE_BASE = [
     total_fats: 12,
     fiber: 9,
     glycemic_index: "Low GI",
+    clinical_insight: "Soluble beta-glucan fiber forms a viscous gel in the digestive tract, attenuating postprandial glucose absorption.",
+    healthier_alternative: {
+      alternative_dish: "Chia & Hemp Seed Overnight Oatmeal",
+      calorie_reduction: 50,
+      carb_reduction: 14,
+      explanation: "Replacing a portion of oats with chia and hemp seeds increases protein and plant omega-3s while curbing total net carbs."
+    },
     items: [
       { item_name: "Steel-cut cooked oatmeal (1 cup)", total_calories: 170, total_protein: 6, total_carbs: 32, total_fats: 3 },
       { item_name: "Fresh organic blueberries & raspberries", total_calories: 50, total_protein: 1, total_carbs: 12, total_fats: 0 },
@@ -79,6 +124,13 @@ const FOOD_KNOWLEDGE_BASE = [
     total_fats: 20,
     fiber: 7,
     glycemic_index: "Low GI",
+    clinical_insight: "Omega-3 rich marine proteins combined with complex tricolor quinoa provide robust glycemic stability without spike risks.",
+    healthier_alternative: {
+      alternative_dish: "Pan-Seared Salmon over Riced Cauliflower & Steamed Asparagus",
+      calorie_reduction: 120,
+      carb_reduction: 22,
+      explanation: "Replacing quinoa with riced cauliflower reduces net carbohydrates by 22g while delivering high prebiotics for gut microbiome diversity."
+    },
     items: [
       { item_name: "Pan-seared Alaskan wild salmon fillet (160g)", total_calories: 280, total_protein: 34, total_carbs: 0, total_fats: 14 },
       { item_name: "Organic tricolor cooked quinoa (1/2 cup)", total_calories: 130, total_protein: 4.5, total_carbs: 23, total_fats: 2 },
@@ -96,6 +148,13 @@ const FOOD_KNOWLEDGE_BASE = [
     total_fats: 12,
     fiber: 5,
     glycemic_index: "Low GI",
+    clinical_insight: "Pectin fiber paired with healthy monounsaturated fat buffers carbohydrate breakdown, creating a balanced snack curve.",
+    healthier_alternative: {
+      alternative_dish: "Celery Sticks with Almond Butter & Hemp Hearts",
+      calorie_reduction: 60,
+      carb_reduction: 18,
+      explanation: "Celery provides crunchy hydration with virtually zero glycemic load, preserving normal baseline glucose."
+    },
     items: [
       { item_name: "Crisp Granny Smith apple (sliced, 1 medium)", total_calories: 95, total_protein: 0.5, total_carbs: 24, total_fats: 0.3 },
       { item_name: "Natural unrefined almond butter (1.5 tbsp)", total_calories: 125, total_protein: 4.5, total_carbs: 2, total_fats: 11 },
@@ -124,17 +183,94 @@ class TimelineManager {
     }
   }
 
+  getPatientBmi() {
+    if (window.patientStateManager && window.patientStateManager.currentValues && window.patientStateManager.currentValues.bmi) {
+      return parseFloat(window.patientStateManager.currentValues.bmi);
+    }
+    const bmiInput = document.getElementById("input-bmi");
+    if (bmiInput && bmiInput.value) {
+      return parseFloat(bmiInput.value);
+    }
+    return 27.5;
+  }
+
+  getBmiLimits(bmi = null) {
+    const b = bmi || this.getPatientBmi();
+    if (b >= 30.0) {
+      return {
+        bmi: b,
+        category: "Obese (Class I+)",
+        dailyLimit: 1500,
+        mealLimit: 500,
+        carbLimit: 40,
+        statusClass: "bmi-obese"
+      };
+    } else if (b >= 25.0) {
+      return {
+        bmi: b,
+        category: "Overweight",
+        dailyLimit: 1800,
+        mealLimit: 600,
+        carbLimit: 50,
+        statusClass: "bmi-overweight"
+      };
+    } else {
+      return {
+        bmi: b,
+        category: "Normal BMI",
+        dailyLimit: 2000,
+        mealLimit: 650,
+        carbLimit: 60,
+        statusClass: "bmi-normal"
+      };
+    }
+  }
+
   loadFromStorage() {
     try {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
         this.events = JSON.parse(saved);
-        // Automatic migration for previously cached image URL
         let migrated = false;
         this.events.forEach(ev => {
+          // 1. Upgrade wrong oatmeal image URL
           if (ev.imageUrl && ev.imageUrl.includes("photo-1517673132405-a56a62b18caf")) {
             ev.imageUrl = "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=500&auto=format&fit=crop&q=80";
             migrated = true;
+          }
+          // 2. Remove robotic scan text
+          if (ev.description && (ev.description.includes("AI-assisted nutritional scan verified") || ev.description.includes("AI assisted nutritional scan verified"))) {
+            ev.description = ev.clinical_insight || (ev.metrics && ev.metrics.glycemic_index ? `Calibrated glycemic load: ${ev.metrics.glycemic_index}. Metabolic response evaluated.` : "");
+            migrated = true;
+          }
+          // 3. Backfill healthier alternative for existing meals if missing
+          if (ev.type === "meal" && !ev.alternative) {
+            const titleLower = (ev.title || "").toLowerCase();
+            if (titleLower.includes("burger")) {
+              ev.alternative = {
+                alternative_dish: "Grilled Chicken Lettuce Wrap with Greek Yogurt Herb Spread",
+                calorie_reduction: 210,
+                carb_reduction: 32,
+                explanation: "Replacing the white flour bun with crisp romaine leaves cuts 32g of rapid carbohydrates, preventing an insulin spike."
+              };
+              migrated = true;
+            } else if (titleLower.includes("avocado") || titleLower.includes("toast")) {
+              ev.alternative = {
+                alternative_dish: "Avocado on 100% Sprouted Ezekiel Bread",
+                calorie_reduction: 35,
+                carb_reduction: 8,
+                explanation: "Sprouted grains have lower starch bioavailability, flattening postprandial glucose curves."
+              };
+              migrated = true;
+            } else if (titleLower.includes("oat")) {
+              ev.alternative = {
+                alternative_dish: "Chia & Hemp Seed Overnight Oatmeal",
+                calorie_reduction: 50,
+                carb_reduction: 14,
+                explanation: "Replacing part of oats with chia and hemp seeds increases protein and plant omega-3s while curbing total net carbs."
+              };
+              migrated = true;
+            }
           }
         });
         if (migrated) {
@@ -547,6 +683,11 @@ class TimelineManager {
 
     let metricsHtml = "";
     if (evt.type === "meal" && evt.metrics) {
+      const bmiLimits = this.getBmiLimits();
+      const exceedsCal = evt.metrics.calories > bmiLimits.mealLimit;
+      const exceedsCarb = evt.metrics.carbs > bmiLimits.carbLimit;
+      const isOverLimit = evt.metrics.bmi_limit_exceeded || exceedsCal || exceedsCarb;
+
       metricsHtml = `
         <div class="event-metrics-row">
           <div class="metric-pill metric-calories"><span class="m-val">${evt.metrics.calories}</span> kcal</div>
@@ -554,6 +695,9 @@ class TimelineManager {
           <div class="metric-pill"><span class="m-label">Carbs:</span> <span class="m-val">${evt.metrics.carbs}g</span></div>
           <div class="metric-pill"><span class="m-label">Fats:</span> <span class="m-val">${evt.metrics.fats}g</span></div>
           ${evt.metrics.glycemic_index ? `<div class="metric-pill metric-gi">${evt.metrics.glycemic_index}</div>` : ""}
+          <div class="metric-pill ${isOverLimit ? 'metric-warning-limit' : 'metric-optimal-limit'}">
+            ${isOverLimit ? `⚠️ Exceeds Meal Limit (> ${bmiLimits.mealLimit} kcal)` : `✅ Within BMI Limit (≤ ${bmiLimits.mealLimit} kcal)`}
+          </div>
         </div>
         ${evt.items && evt.items.length > 0 ? `
           <div class="event-items-list">
@@ -561,6 +705,17 @@ class TimelineManager {
             <ul>
               ${evt.items.map(it => `<li><span>${it.item_name}</span> <strong>${it.total_calories} kcal</strong></li>`).join("")}
             </ul>
+          </div>
+        ` : ""}
+        ${evt.alternative ? `
+          <div class="event-alternative-box">
+            <div class="alt-header">
+              <span class="alt-title-label">🌱 Healthier Diabetic Swap:</span>
+              <span class="alt-dish-name">${evt.alternative.alternative_dish}</span>
+              ${evt.alternative.calorie_reduction ? `<span class="alt-savings-badge">Save ~${evt.alternative.calorie_reduction} kcal</span>` : ''}
+              ${evt.alternative.carb_reduction ? `<span class="alt-savings-badge">-${evt.alternative.carb_reduction}g Carbs</span>` : ''}
+            </div>
+            <p class="alt-desc-text">${evt.alternative.explanation}</p>
           </div>
         ` : ""}
       `;
@@ -617,6 +772,9 @@ class TimelineManager {
       `;
     }
 
+    const isRobotic = evt.description && (evt.description.includes("AI-assisted nutritional scan verified") || evt.description.includes("AI assisted nutritional scan verified"));
+    const displayDesc = isRobotic ? (evt.clinical_insight || "") : (evt.description || "");
+
     return `
       <div class="timeline-event-row type-${typeConfig.color}" id="${evt.id}">
         <!-- Time Marker Column -->
@@ -646,7 +804,7 @@ class TimelineManager {
             </div>
           ` : ""}
 
-          ${evt.description ? `<p class="event-desc">${evt.description}</p>` : ""}
+          ${displayDesc ? `<p class="event-desc">${displayDesc}</p>` : ""}
 
           ${metricsHtml}
         </div>
@@ -860,10 +1018,14 @@ class FoodNutritionScanner {
             : "https://curatwin-backend.onrender.com");
 
       try {
+        const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
         const resp = await fetch(`${apiBase}/api/analyze-food`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: mealQuery })
+          body: JSON.stringify({ 
+            query: mealQuery,
+            patient_bmi: patientBmi
+          })
         });
         if (resp.ok) {
           foodResult = await resp.json();
@@ -874,7 +1036,7 @@ class FoodNutritionScanner {
 
       // 2. Direct Groq AI API Fallback (Using verified Groq model)
       if (!foodResult) {
-        this.updateProgress(75, "Querying Groq Cloud AI Engine directly...");
+        this.updateProgress(75, "Querying Groq Cloud AI Engine directly with BMI clinical profile...");
         foodResult = await this.callGroqAiDirect(mealQuery);
       }
 
@@ -898,7 +1060,10 @@ class FoodNutritionScanner {
     if (!this.groqApiKey) {
       throw new Error("Direct Groq API key is not configured and backend is unreachable.");
     }
-    const prompt = `You are a clinical diabetic nutrition AI for CuraTwin. Analyze the nutritional breakdown of this meal:\n'${query}'\n\nEstimate realistic portion, total calories, macronutrients (in grams), dietary fiber (in grams), glycemic index category ('Low GI', 'Moderate GI', or 'High GI'), meal category ('Breakfast', 'Lunch', 'Dinner', or 'Snack'), and itemized plate components with their individual calories, protein, carbs, and fats.\nReturn ONLY a valid JSON object matching this schema:\n{\n  "meal_name": "Short descriptive name",\n  "category": "Breakfast, Lunch, Dinner, or Snack",\n  "total_calories": 0,\n  "total_protein": 0,\n  "total_carbs": 0,\n  "total_fats": 0,\n  "fiber": 0,\n  "glycemic_index": "Low GI, Moderate GI, or High GI",\n  "items": [\n    {"item_name": "string", "total_calories": 0, "total_protein": 0, "total_carbs": 0, "total_fats": 0}\n  ]\n}`;
+    const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50 };
+
+    const prompt = `You are a clinical diabetic nutrition AI for CuraTwin. Analyze the nutritional breakdown of this meal for a diabetic patient with BMI ${patientBmi}:\n'${query}'\n\nEstimate realistic portion, total calories, macronutrients (in grams), dietary fiber (in grams), glycemic index category ('Low GI', 'Moderate GI', or 'High GI'), meal category ('Breakfast', 'Lunch', 'Dinner', or 'Snack'), itemized plate components, a clinical metabolic insight, and a healthier alternative/swap specifically tailored to reduce glycemic spike and caloric density.\nReturn ONLY a valid JSON object matching this schema:\n{\n  "meal_name": "Short descriptive name",\n  "category": "Breakfast, Lunch, Dinner, or Snack",\n  "total_calories": 0,\n  "total_protein": 0,\n  "total_carbs": 0,\n  "total_fats": 0,\n  "fiber": 0,\n  "glycemic_index": "Low GI, Moderate GI, or High GI",\n  "clinical_insight": "Specific metabolic assessment of this food on insulin resistance and postprandial glucose spike.",\n  "healthier_alternative": {\n    "name": "Healthier swap or alternative dish",\n    "description": "Specific diabetic modification to improve glycemic kinetics and metabolic stability.",\n    "calorie_reduction": 120,\n    "carb_reduction": 25,\n    "clinical_benefit": "Reduces insulin resistance and prevents blood sugar spike"\n  },\n  "items": [\n    {"item_name": "string", "total_calories": 0, "total_protein": 0, "total_carbs": 0, "total_fats": 0}\n  ]\n}`;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -922,7 +1087,10 @@ class FoodNutritionScanner {
     }
 
     const groqData = await response.json();
-    return JSON.parse(groqData.choices[0].message.content);
+    const parsed = JSON.parse(groqData.choices[0].message.content);
+    parsed.recommended_max_meal_calories = limits.maxMealCalories;
+    parsed.bmi_meal_limit_exceeded = (parsed.total_calories || 0) > limits.maxMealCalories;
+    return parsed;
   }
 
   updateProgress(pct, label) {
@@ -942,13 +1110,37 @@ class FoodNutritionScanner {
     const fats = data.total_fats || 0;
     const gi = data.glycemic_index || "Low GI";
 
-    // Circular progress stroke calculation (target meal ~ 600 kcal)
-    const mealTarget = 600;
+    const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50, label: "BMI 27.5" };
+    const maxMealCals = data.recommended_max_meal_calories || limits.maxMealCalories;
+    const isExceeded = data.bmi_meal_limit_exceeded !== undefined ? data.bmi_meal_limit_exceeded : (calories > maxMealCals);
+
+    // Circular progress stroke calculation (target meal ~ maxMealCals)
+    const mealTarget = maxMealCals;
     const pct = Math.min(100, Math.round((calories / mealTarget) * 100));
     const circumference = 2 * Math.PI * 34; // r=34 => ~213.6
     const strokeDash = `${(pct / 100) * circumference} ${circumference}`;
 
+    const alt = data.healthier_alternative;
+
     this.resultsBody.innerHTML = `
+      <!-- BMI Caloric & Carb Limit Banner -->
+      <div class="bmi-limit-banner ${isExceeded ? 'limit-exceeded' : 'limit-optimal'}">
+        <div class="bmi-limit-icon">${isExceeded ? '⚠️' : '✅'}</div>
+        <div class="bmi-limit-details">
+          <div class="bmi-limit-title">
+            ${isExceeded 
+              ? `Caloric Limit Exceeded for Patient BMI (${patientBmi})` 
+              : `Within Recommended Intake Limit (BMI ${patientBmi})`}
+          </div>
+          <div class="bmi-limit-desc">
+            ${isExceeded 
+              ? `This meal provides <strong>${calories} kcal</strong> (${carbs}g carbs), exceeding your recommended ceiling of <strong>${maxMealCals} kcal</strong> and ${limits.maxMealCarbs}g carbs.` 
+              : `This meal provides <strong>${calories} kcal</strong>, safely within your recommended per-meal threshold of <strong>${maxMealCals} kcal</strong>.`}
+          </div>
+        </div>
+      </div>
+
       <div class="scanned-overview-card">
         <div class="scanned-ring-box">
           <svg width="84" height="84" viewBox="0 0 84 84" class="svg-macro-ring">
@@ -965,11 +1157,40 @@ class FoodNutritionScanner {
           <div class="scanned-tag-row">
             <span class="scanned-category-tag">${data.category || 'Nutrient Scan'}</span>
             <span class="scanned-gi-tag gi-${gi.toLowerCase().replace(/[^a-z]/g, '')}">${gi}</span>
+            <span class="${isExceeded ? 'metric-warning-limit' : 'metric-optimal-limit'}">
+              ${isExceeded ? 'Exceeds BMI Limit' : 'Optimal Intake'}
+            </span>
           </div>
           <h3 class="scanned-meal-name">${mealName}</h3>
-          <p class="scanned-meal-sub">Automated portion analysis with calibrated glycemic load for diabetes management.</p>
+          <p class="scanned-meal-sub">${data.clinical_insight || 'Automated portion analysis with calibrated glycemic load for diabetes management.'}</p>
         </div>
       </div>
+
+      <!-- Healthier Alternative Suggestion Box -->
+      ${alt ? `
+        <div class="event-alternative-box">
+          <div class="alt-header">
+            <div class="alt-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Clinical Suggestion & Healthier Swap
+            </div>
+            <div class="alt-savings-badge">
+              ${alt.calorie_reduction ? `Save ${alt.calorie_reduction} kcal` : ''} 
+              ${alt.carb_reduction ? `• -${alt.carb_reduction}g Carbs` : ''}
+            </div>
+          </div>
+          <div class="alt-body">
+            <div class="alt-swap-name">👉 Swap with: <strong>${alt.name}</strong></div>
+            <div class="alt-desc-text">${alt.description}</div>
+            ${alt.clinical_benefit ? `<div class="alt-benefit-text">💡 <em>${alt.clinical_benefit}</em></div>` : ''}
+          </div>
+          <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+            <button type="button" id="btn-swap-to-alternative" class="btn-apply-alternative">
+              Choose Healthier Alternative (${alt.name})
+            </button>
+          </div>
+        </div>
+      ` : ""}
 
       <!-- Macro Badges Grid (CuraTwin Clinical System) -->
       <div class="scanned-macros-grid">
@@ -1026,6 +1247,26 @@ class FoodNutritionScanner {
         </div>
       ` : ""}
     `;
+
+    // Bind click handler for alternative swap button if present
+    const swapBtn = document.getElementById("btn-swap-to-alternative");
+    if (swapBtn && alt) {
+      swapBtn.addEventListener("click", () => {
+        // Swap to the recommended alternative
+        this.lastResult = {
+          ...this.lastResult,
+          meal_name: alt.name,
+          total_calories: Math.max(100, (data.total_calories || 500) - (alt.calorie_reduction || 150)),
+          total_carbs: Math.max(10, (data.total_carbs || 50) - (alt.carb_reduction || 25)),
+          glycemic_index: "Low GI",
+          clinical_insight: `${alt.name}: ${alt.clinical_benefit || alt.description}`,
+          healthier_alternative: null,
+          bmi_meal_limit_exceeded: false
+        };
+        this.displayResults(this.lastResult);
+        this.showToast(`Swapped to healthier option: ${alt.name}`);
+      });
+    }
   }
 
   commitScannedMealToTimeline() {
@@ -1033,6 +1274,15 @@ class FoodNutritionScanner {
 
     const data = this.lastResult;
     const mealName = data.meal_name || data.name || "Logged Meal";
+    const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50 };
+    const maxMealCals = data.recommended_max_meal_calories || limits.maxMealCalories;
+    const isOverLimit = (data.total_calories || 0) > maxMealCals;
+
+    // Clinical description without robotic scan phrases
+    const clinicalDesc = data.clinical_insight || (isOverLimit
+      ? `Caloric intake exceeds recommended ceiling (${maxMealCals} kcal) for patient BMI ${patientBmi}.`
+      : `Metabolic profile evaluated with ${data.glycemic_index || "favorable"} glycemic kinetics for patient BMI.`);
 
     const newEvent = {
       id: "evt-meal-" + Date.now(),
@@ -1048,7 +1298,10 @@ class FoodNutritionScanner {
         fiber: data.fiber || 5,
         glycemic_index: data.glycemic_index || "Low GI"
       },
-      description: `AI-assisted nutritional scan verified. Estimated glycemic impact: ${data.glycemic_index || "Low GI"}.`,
+      description: clinicalDesc,
+      alternative: data.healthier_alternative || null,
+      bmi_limit_exceeded: isOverLimit,
+      recommended_max_meal_calories: maxMealCals,
       imageUrl: this.currentDataUrl || (data.imageUrl || null),
       items: data.items || [],
       status: "Verified AI Scan"

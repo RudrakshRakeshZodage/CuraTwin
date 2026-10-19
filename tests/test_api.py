@@ -390,6 +390,13 @@ def test_food_analysis_endpoint(client):
                         "total_fats": 8.0,
                         "fiber": 6.0,
                         "glycemic_index": "Low GI",
+                        "clinical_insight": "Lean poultry paired with cruciferous fiber provides steady amino acids and low glycemic impact.",
+                        "healthier_alternative": {
+                            "alternative_dish": "Grilled Chicken with Riced Cauliflower",
+                            "calorie_reduction": 110.0,
+                            "carb_reduction": 28.0,
+                            "explanation": "Replacing brown rice with riced cauliflower reduces glycemic load while retaining high fiber."
+                        },
                         "items": [
                             {"item_name": "Chicken Breast", "total_calories": 220.0, "total_protein": 35.0, "total_carbs": 0.0, "total_fats": 4.0},
                             {"item_name": "Steamed Broccoli", "total_calories": 50.0, "total_protein": 3.0, "total_carbs": 10.0, "total_fats": 0.5},
@@ -407,7 +414,8 @@ def test_food_analysis_endpoint(client):
     with patch.dict(os.environ, {"GROQ_API_KEY": "mock_test_key"}):
         with patch("urllib.request.urlopen", return_value=mock_resp):
             payload = {
-                "query": "Grilled chicken breast with steamed broccoli and brown rice"
+                "query": "Grilled chicken breast with steamed broccoli and brown rice",
+                "patient_bmi": 28.4
             }
             response = client.post("/api/analyze-food", json=payload)
             assert response.status_code == 200
@@ -418,5 +426,8 @@ def test_food_analysis_endpoint(client):
             assert data["total_carbs"] == 35.0
             assert data["total_fats"] == 8.0
             assert data["glycemic_index"] == "Low GI"
+            assert "clinical_insight" in data
+            assert data["healthier_alternative"]["alternative_dish"] == "Grilled Chicken with Riced Cauliflower"
+            assert data["bmi_meal_limit_exceeded"] is False
             assert len(data["items"]) == 3
 
