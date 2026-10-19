@@ -220,12 +220,14 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
         )
 
     # Clean query if it is just a filename
-    raw_query = payload.query.strip()
-    if any(raw_query.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".gif"]):
+    raw_query = (payload.query or "").strip()
+    if raw_query and any(raw_query.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".gif"]):
         clean_name = raw_query.rsplit(".", 1)[0].replace("_", " ").replace("-", " ")
         meal_desc = f"Diabetic-friendly meal based on plate image '{clean_name}'"
+    elif raw_query:
+        meal_desc = raw_query
     else:
-        meal_desc = raw_query or "Balanced diabetic-friendly meal plate"
+        meal_desc = "Analyze the uploaded food plate photo and identify the dish, portion, and ingredients accurately."
 
     bmi = payload.patient_bmi if payload.patient_bmi and payload.patient_bmi > 10 else 27.5
     # Clinical caloric limit per meal based on metabolic BMI brackets
@@ -237,8 +239,9 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
         recommended_max_cals = 650.0
 
     prompt = (
-        f"You are a clinical diabetic nutrition AI for CuraTwin. Analyze this meal for a diabetic patient with BMI {bmi:.1f}:\n"
-        f"'{meal_desc}'\n\n"
+        f"You are a clinical diabetic nutrition and Computer Vision AI for CuraTwin. Analyze this meal for a diabetic patient with BMI {bmi:.1f}:\n"
+        f"Description/Context: '{meal_desc}'\n\n"
+        f"If an image is attached, inspect the food plate visually to identify the exact dish (e.g. braised chicken feet, curry, pasta, salad, etc.).\n"
         f"Estimate the realistic portion, total calories, macronutrients (in grams), dietary fiber (in grams), "
         f"glycemic index category ('Low GI', 'Moderate GI', or 'High GI'), meal category ('Breakfast', 'Lunch', 'Dinner', or 'Snack'), "
         f"and itemized plate components.\n"
@@ -272,6 +275,18 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
         f"}}"
     )
 
+    has_image = bool(payload.image_data and payload.image_data.startswith("data:image"))
+
+    if has_image:
+        user_message_content = [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {"url": payload.image_data}}
+        ]
+        chosen_model = "llama-3.2-11b-vision-preview"
+    else:
+        user_message_content = prompt
+        chosen_model = "openai/gpt-oss-120b"
+
     req_data = json.dumps({
         "messages": [
             {
@@ -280,10 +295,10 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
             },
             {
                 "role": "user",
-                "content": prompt
+                "content": user_message_content
             }
         ],
-        "model": "openai/gpt-oss-120b",
+        "model": chosen_model,
         "temperature": 0.2,
         "response_format": {"type": "json_object"}
     }).encode("utf-8")

@@ -221,8 +221,9 @@ class FoodAlternative(BaseModel):
 
 
 class FoodAnalysisRequest(BaseModel):
-    query: str = Field(..., description="Meal description, dish name, or food items")
+    query: Optional[str] = Field(None, description="Meal description, dish name, or food items")
     image_name: Optional[str] = None
+    image_data: Optional[str] = Field(None, description="Base64 data URL of the food plate image for multimodal vision AI")
     patient_bmi: Optional[float] = Field(27.5, description="Patient BMI for personalized intake limit analysis")
 
 
