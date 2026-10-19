@@ -68,7 +68,7 @@ const FOOD_KNOWLEDGE_BASE = [
       { item_name: "Crushed raw walnuts (15g)", total_calories: 100, total_protein: 2.5, total_carbs: 2, total_fats: 9 },
       { item_name: "Ground Ceylon cinnamon & flaxseed", total_calories: 20, total_protein: 0.5, total_carbs: 1, total_fats: 1 },
     ],
-    imageUrl: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=500&auto=format&fit=crop&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=500&auto=format&fit=crop&q=80"
   },
   {
     name: "Wild Salmon with Quinoa & Steamed Broccoli",
@@ -129,6 +129,17 @@ class TimelineManager {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
         this.events = JSON.parse(saved);
+        // Automatic migration for previously cached image URL
+        let migrated = false;
+        this.events.forEach(ev => {
+          if (ev.imageUrl && ev.imageUrl.includes("photo-1517673132405-a56a62b18caf")) {
+            ev.imageUrl = "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=500&auto=format&fit=crop&q=80";
+            migrated = true;
+          }
+        });
+        if (migrated) {
+          this.saveToStorage();
+        }
       }
     } catch (e) {
       console.warn("Could not load timeline from storage", e);
@@ -218,7 +229,7 @@ class TimelineManager {
           glycemic_index: "Low GI"
         },
         description: "High soluble fiber complex carbohydrate profile with slow glucose kinetics.",
-        imageUrl: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=500&auto=format&fit=crop&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=500&auto=format&fit=crop&q=80",
         items: [
           { item_name: "Steel-cut oats (1 cup)", total_calories: 170, total_protein: 6, total_carbs: 32, total_fats: 3 },
           { item_name: "Fresh berries (blueberries & raspberries)", total_calories: 50, total_protein: 1, total_carbs: 12, total_fats: 0 },
