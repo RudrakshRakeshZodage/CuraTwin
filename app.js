@@ -20,9 +20,12 @@
 const API_BASE_URL = Object.freeze("https://curatwin-backend.onrender.com");
 
 // -----------------------------------------------------------------------------
-// Effective Base URL Resolution (Locked to production service)
+// Effective Base URL Resolution (Local dev on localhost, Render in production)
 // -----------------------------------------------------------------------------
 function getEffectiveApiBaseUrl() {
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://localhost:8000";
+  }
   return API_BASE_URL;
 }
 
@@ -866,6 +869,48 @@ function renderPredictionSuccess(result, inputs) {
   const measEpoch = measIso ? new Date(measIso).getTime() : Date.now();
   patientState.recordPrediction(result, measEpoch);
   checkStalePredictionStatus();
+
+  // Automatically record ML prediction and glucose biomarker into Digital Twin Timeline
+  if (window.timelineManager) {
+    const isPos = result.prediction === 1;
+    const pct = result.probability !== null && typeof result.probability === "number"
+      ? (result.probability * 100).toFixed(2) + "%"
+      : (isPos ? ">50%" : "<50%");
+
+    window.timelineManager.addEvent({
+      id: "evt-pred-" + Date.now(),
+      type: "prediction",
+      title: `CuraTwin ML Risk Assessment (${source.toUpperCase()})`,
+      timestamp: predIso,
+      category: "Model predictions",
+      metrics: {
+        outcome: result.label || (isPos ? "Positive model classification" : "Negative model classification"),
+        risk_probability: pct,
+        model: "LogisticRegression (15 features)",
+        provenance: `${source.toUpperCase()} (${device})`
+      },
+      description: `Inference executed on Render FastAPI backend. Evaluated 15 features with glucose ${summaryData.blood_glucose_level} mg/dL, HbA1c ${summaryData.HbA1c_level}%, BMI ${summaryData.bmi}.`,
+      status: isPos ? "Elevated Risk" : "Low Risk"
+    });
+
+    // Also record the glucose reading event
+    window.timelineManager.addEvent({
+      id: "evt-glucose-" + Date.now(),
+      type: "glucose",
+      title: `Blood Glucose (${source === "sensor" ? "Sensor Stream" : "Clinical Entry"})`,
+      timestamp: measIso,
+      category: "Glucose",
+      metrics: {
+        glucose: summaryData.blood_glucose_level,
+        unit: "mg/dL",
+        zone: summaryData.blood_glucose_level > 140 ? "Elevated (>140 mg/dL)" : (summaryData.blood_glucose_level < 70 ? "Hypoglycemia (<70 mg/dL)" : "Target In-Range (70–140 mg/dL)"),
+        trend: source === "sensor" ? (elements.telemetryTrendArrow ? elements.telemetryTrendArrow.textContent.trim() : "→ Stable") : "→ Stable",
+        source: `${device}`
+      },
+      description: `Evaluated measurement recorded for patient profile at ${measIso ? new Date(measIso).toLocaleTimeString() : 'now'}.`,
+      status: summaryData.blood_glucose_level > 140 ? "Elevated" : "In-Range"
+    });
+  }
 
   elements.metaTimestamp.textContent = `Inference completed on Render`;
 }

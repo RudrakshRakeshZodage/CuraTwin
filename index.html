@@ -30,8 +30,24 @@
         </div>
       </div>
 
-      <!-- Backend Connection Status Indicator -->
+      <!-- Header Actions: Quick Navigation & Lifestyle Buttons -->
       <div class="header-actions">
+        <div class="header-nav-links">
+          <a href="#daily-timeline-section" class="btn-header-link">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Timeline</span>
+          </a>
+          <button type="button" id="btn-header-food-scan" class="btn-header-action btn-scan-highlight">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Scan Food (AI)</span>
+          </button>
+          <button type="button" id="btn-header-daily-checkin" class="btn-header-action btn-checkin-highlight">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span>Daily Check-in</span>
+          </button>
+        </div>
+
+        <!-- Backend Connection Status Indicator -->
         <div id="backend-status-badge" class="status-badge status-checking" role="status" aria-live="polite">
           <span class="status-dot"></span>
           <span id="backend-status-text" class="status-label">Checking Backend...</span>
@@ -703,6 +719,389 @@
     </div>
   </main>
 
+  <!-- ================================================================= -->
+  <!-- DIGITAL TWIN DAILY TIMELINE & LIFESTYLE BIOMARKER INTEGRATION -->
+  <!-- ================================================================= -->
+  <section class="timeline-section" id="daily-timeline-section" aria-labelledby="timeline-heading">
+    <div class="timeline-wrapper">
+      
+      <!-- Section Header -->
+      <div class="timeline-section-header">
+        <div class="header-titles">
+          <div class="timeline-title-row">
+            <div class="timeline-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div>
+              <h2 id="timeline-heading" class="timeline-main-title">Digital Twin Daily Lifestyle &amp; Biomarker Timeline</h2>
+              <p class="timeline-main-subtitle">
+                Unified chronological timeline combining Meals, Physical Activity, Sleep, Medication adherence, Continuous Glucose readings, Symptoms, and ML Model predictions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="timeline-header-actions">
+          <button type="button" id="btn-open-daily-checkin" class="btn-primary btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <span>Daily Check-in (5 Questions)</span>
+          </button>
+          <button type="button" id="btn-open-food-scanner" class="btn-secondary btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>Scan Food Photo (AI)</span>
+          </button>
+          <button type="button" id="btn-reset-timeline" class="btn-ghost btn-sm" title="Reset timeline to default clinical demo day">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+            <span>Reset</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 6-Metric Daily Summary Telemetry Strip -->
+      <div class="summary-telemetry-grid">
+        <div class="summary-metric-card metric-sleep-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Sleep &amp; Recovery</span>
+            <span class="summary-icon">🌙</span>
+          </div>
+          <div class="summary-val" id="summary-sleep-val">7h 35m</div>
+          <div class="summary-sub" id="summary-sleep-sub">Restful (88%)</div>
+        </div>
+
+        <div class="summary-metric-card metric-meds-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Medication Adherence</span>
+            <span class="summary-icon">💊</span>
+          </div>
+          <div class="summary-val" id="summary-meds-val">1 / 1 Doses</div>
+          <div class="summary-sub" id="summary-meds-sub">100% On-Schedule</div>
+        </div>
+
+        <div class="summary-metric-card metric-nutrition-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Daily Nutrition &amp; Macros</span>
+            <span class="summary-icon">🍽️</span>
+          </div>
+          <div class="summary-val" id="summary-nutrition-val">800 kcal</div>
+          <div class="summary-sub" id="summary-nutrition-sub">P: 53g • C: 70g • F: 34g</div>
+        </div>
+
+        <div class="summary-metric-card metric-activity-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Physical Activity</span>
+            <span class="summary-icon">🏃</span>
+          </div>
+          <div class="summary-val" id="summary-activity-val">3,420 steps</div>
+          <div class="summary-sub" id="summary-activity-sub">145 kcal active burn</div>
+        </div>
+
+        <div class="summary-metric-card metric-glucose-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Glycemic Trajectory</span>
+            <span class="summary-icon">🩸</span>
+          </div>
+          <div class="summary-val" id="summary-glucose-val">124 mg/dL</div>
+          <div class="summary-sub" id="summary-glucose-sub">Daily Avg: 111 mg/dL</div>
+        </div>
+
+        <div class="summary-metric-card metric-symptoms-card">
+          <div class="summary-header">
+            <span class="summary-lbl">Symptoms &amp; Well-being</span>
+            <span class="summary-icon">🩺</span>
+          </div>
+          <div class="summary-val" id="summary-symptoms-val">1 Logged</div>
+          <div class="summary-sub" id="summary-symptoms-sub">Mild / Non-acute</div>
+        </div>
+      </div>
+
+      <!-- Filter Pills Bar -->
+      <div class="timeline-controls-bar">
+        <div class="filter-label">Filter Stream:</div>
+        <div class="timeline-filter-pills" id="timeline-filter-pills">
+          <!-- Populated dynamically by timeline.js -->
+        </div>
+      </div>
+
+      <!-- Vertical Chronological Timeline Stream Container -->
+      <div class="timeline-stream-container" id="timeline-stream-container">
+        <!-- Rendered by timeline.js -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- MODAL 1: DAILY HEALTH CHECK-IN (The 5 Prompted Questions) -->
+  <!-- ================================================================= -->
+  <div id="modal-daily-checkin" class="curatwin-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="checkin-modal-title">
+    <div class="curatwin-modal-card">
+      <div class="modal-card-header">
+        <div class="modal-header-text">
+          <span class="modal-badge">Daily Patient Check-in</span>
+          <h3 id="checkin-modal-title" class="modal-title">Holistic Lifestyle &amp; Biomarker Audit</h3>
+          <p class="modal-subtitle">Record your daily sleep, medication, meals, physical exercise, and physical sensations.</p>
+        </div>
+        <button type="button" id="btn-close-checkin-modal" class="modal-close-btn" aria-label="Close check-in modal">&times;</button>
+      </div>
+
+      <form id="form-daily-checkin" class="modal-form">
+        <!-- Question 1: Sleep -->
+        <div class="question-block">
+          <div class="question-header">
+            <span class="question-num">1</span>
+            <h4 class="question-text">How did you sleep last night?</h4>
+          </div>
+          <div class="question-inputs-grid">
+            <div class="form-group">
+              <label for="checkin-sleep-hours" class="field-label">Sleep Duration (hours)</label>
+              <input type="number" id="checkin-sleep-hours" class="form-control" min="0" max="24" step="0.5" value="7.5" required />
+            </div>
+            <div class="form-group">
+              <label for="checkin-sleep-quality" class="field-label">Sleep Quality</label>
+              <select id="checkin-sleep-quality" class="form-control">
+                <option value="Restful (90%)" selected>Restful &amp; Refreshing (High Quality)</option>
+                <option value="Normal (75%)">Average / Normal (Adequate)</option>
+                <option value="Restless (55%)">Light / Interrupted (Restless)</option>
+                <option value="Poor / Insomnia (30%)">Poor / Fragmented (Low Quality)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 2: Medication -->
+        <div class="question-block">
+          <div class="question-header">
+            <span class="question-num">2</span>
+            <h4 class="question-text">Have you taken your prescribed medication?</h4>
+          </div>
+          <div class="question-inputs-grid">
+            <div class="form-group">
+              <label for="checkin-med-status" class="field-label">Medication Status</label>
+              <select id="checkin-med-status" class="form-control">
+                <option value="Taken" selected>Yes — Taken on schedule</option>
+                <option value="Taken Late">Yes — Taken with delay</option>
+                <option value="Pending">Not yet — Scheduled for later today</option>
+                <option value="Skipped">No — Skipped today</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="checkin-med-name" class="field-label">Prescription Details</label>
+              <input type="text" id="checkin-med-name" class="form-control" value="Metformin 500mg" placeholder="e.g. Metformin 500mg, Lisinopril 10mg" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 3: Meals & Food Scanner -->
+        <div class="question-block">
+          <div class="question-header">
+            <span class="question-num">3</span>
+            <div class="question-title-with-action">
+              <h4 class="question-text">What did you eat recently?</h4>
+              <button type="button" id="btn-checkin-scan-meal" class="btn-pill-action">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>📸 Scan Food Photo with AI</span>
+              </button>
+            </div>
+          </div>
+          <div class="question-inputs-grid">
+            <div class="form-group">
+              <label for="checkin-meal-text" class="field-label">Recent Meal or Snack Description</label>
+              <input type="text" id="checkin-meal-text" class="form-control" placeholder="e.g. Grilled chicken breast, quinoa, and steamed broccoli" />
+            </div>
+            <div class="form-group">
+              <label for="checkin-meal-calories" class="field-label">Estimated Calories (kcal)</label>
+              <input type="number" id="checkin-meal-calories" class="form-control" placeholder="e.g. 450" min="0" max="3000" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 4: Physical Activity -->
+        <div class="question-block">
+          <div class="question-header">
+            <span class="question-num">4</span>
+            <h4 class="question-text">How physically active have you been today?</h4>
+          </div>
+          <div class="question-inputs-grid three-col">
+            <div class="form-group">
+              <label for="checkin-activity-type" class="field-label">Activity Type</label>
+              <select id="checkin-activity-type" class="form-control">
+                <option value="Brisk Walk" selected>Brisk Walking / Commute</option>
+                <option value="Running / Jogging">Running / Jogging</option>
+                <option value="Cycling">Cycling / Stationary Bike</option>
+                <option value="Strength Training">Resistance / Strength Gym</option>
+                <option value="Light Housework">Light Walking / Housework</option>
+                <option value="Sedentary">Mostly Sedentary / Resting</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="checkin-activity-mins" class="field-label">Duration (minutes)</label>
+              <input type="number" id="checkin-activity-mins" class="form-control" min="0" max="600" value="30" />
+            </div>
+            <div class="form-group">
+              <label for="checkin-activity-steps" class="field-label">Step Count</label>
+              <input type="number" id="checkin-activity-steps" class="form-control" min="0" max="50000" value="3500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 5: Symptoms -->
+        <div class="question-block">
+          <div class="question-header">
+            <span class="question-num">5</span>
+            <h4 class="question-text">Are you experiencing any unusual symptoms?</h4>
+          </div>
+          <div class="question-inputs-grid">
+            <div class="form-group">
+              <label for="checkin-symptoms-select" class="field-label">Current Physical Sensations</label>
+              <select id="checkin-symptoms-select" class="form-control">
+                <option value="None / Feeling Great" selected>None — Feeling energized and normal</option>
+                <option value="Mild Fatigue / Sluggishness">Mild Fatigue / Afternoon drowsiness</option>
+                <option value="Excessive Thirst (Polydipsia)">Excessive Thirst (Dry mouth)</option>
+                <option value="Dizziness / Lightheadedness">Dizziness or mild lightheadedness</option>
+                <option value="Shakiness / Hypoglycemic Sensation">Shakiness / Jittery hunger</option>
+                <option value="Blurred Vision">Blurred or straining vision</option>
+                <option value="Frequent Urination">Frequent urination (Polyuria)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="checkin-symptom-severity" class="field-label">Severity Level</label>
+              <select id="checkin-symptom-severity" class="form-control">
+                <option value="1/5" selected>1/5 — Negligible / Mild</option>
+                <option value="2/5">2/5 — Noticeable but manageable</option>
+                <option value="3/5">3/5 — Moderate interference</option>
+                <option value="4/5">4/5 — Significant discomfort</option>
+                <option value="5/5">5/5 — Severe / Needs attention</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group mt-2">
+            <label for="checkin-symptom-notes" class="field-label">Additional Clinical or Subjective Notes</label>
+            <input type="text" id="checkin-symptom-notes" class="form-control" placeholder="Optional notes regarding triggers, timing, or hydration..." />
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="modal-form-actions">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('btn-close-checkin-modal').click()">Cancel</button>
+          <button type="submit" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Save &amp; Append to Digital Twin Timeline</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL 2: AI FOOD NUTRITION & CALORIE SCANNER (Groq & Vision Engine) -->
+  <!-- ================================================================= -->
+  <div id="modal-food-scanner" class="curatwin-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title">
+    <div class="curatwin-modal-card scanner-modal-width">
+      <div class="modal-card-header">
+        <div class="modal-header-text">
+          <span class="modal-badge badge-scan">AI Vision &amp; Telemetry</span>
+          <h3 id="scanner-modal-title" class="modal-title">AI Food Nutrition &amp; Calorie Scanner</h3>
+          <p class="modal-subtitle">Upload or select a food photo to automatically estimate calories, protein, carbohydrates, fats, and glycemic index.</p>
+        </div>
+        <button type="button" id="btn-close-scanner-modal" class="modal-close-btn" aria-label="Close food scanner modal">&times;</button>
+      </div>
+
+      <div class="scanner-modal-body">
+        
+        <!-- Sample Meal Quick-Pick Buttons -->
+        <div class="scanner-presets-section">
+          <span class="scanner-presets-label">Quick Test Sample Meals:</span>
+          <div class="scanner-presets-list" id="scanner-presets-list">
+            <!-- Populated dynamically by timeline.js -->
+          </div>
+        </div>
+
+        <!-- Meal Description / Text Query Input -->
+        <div class="food-query-section">
+          <label for="food-query-input" class="scanner-presets-label">What did you eat? (Describe dish or ingredients)</label>
+          <div class="food-query-row">
+            <input type="text" id="food-query-input" placeholder="e.g. Avocado toast with poached egg, Chicken Biryani, Oatmeal..." class="form-input food-query-input" />
+            <button type="button" id="btn-analyze-food" class="btn-primary btn-scanner-analyze">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Analyze with AI</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="scanner-divider">
+          <span>OR UPLOAD A FOOD PHOTO</span>
+        </div>
+
+        <!-- Upload & Drop Zone -->
+        <div class="food-drop-zone" id="food-drop-zone">
+          <input type="file" id="food-image-input" accept="image/*" class="food-file-input" />
+          <label for="food-image-input" class="drop-zone-label">
+            <div class="drop-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <span class="drop-text-primary">Click to Upload Food Photo or Drag &amp; Drop</span>
+            <span class="drop-text-sub">Supports JPG, PNG, WebP up to 10MB</span>
+          </label>
+        </div>
+
+        <!-- Image Preview Frame -->
+        <div id="scanner-preview-container" class="scanner-preview-frame" hidden>
+          <img id="scanner-preview-img" alt="Scanned Food Preview" class="scanner-preview-image" />
+          <div class="preview-lens-overlay"></div>
+        </div>
+
+        <!-- Scanning Progress Bar & Spinner -->
+        <div id="scanner-progress-box" class="scanner-progress-container" hidden>
+          <div class="scanner-pulse-ring"></div>
+          <div class="progress-track">
+            <div id="scanner-progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="scanner-progress-step" class="progress-step-text">Processing image...</span>
+            <span id="scanner-progress-pct" class="progress-pct-text">0%</span>
+          </div>
+        </div>
+
+        <!-- AI Nutrition Results Card -->
+        <div id="scanner-results-card" class="scanner-results-card" hidden>
+          <div id="scanner-results-body" class="scanner-results-body">
+            <!-- Populated dynamically by displayResults -->
+          </div>
+
+          <div class="scanner-actions-bar">
+            <button type="button" id="btn-save-scanned-meal" class="btn-primary w-full">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Add Meal &amp; Macros to Digital Twin Timeline</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- Technical Information Section -->
   <section class="info-section">
     <div class="info-container">
@@ -739,6 +1138,8 @@
 
   <!-- Scripts -->
   <script src="./sensorAdapter.js"></script>
+  <script src="./timeline.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
+

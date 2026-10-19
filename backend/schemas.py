@@ -203,3 +203,28 @@ class HealthResponse(BaseModel):
     expected_features: List[str]
     supported_genders: List[str]
     supported_smoking_categories: List[str]
+
+
+class FoodItemBreakdown(BaseModel):
+    item_name: str
+    total_calories: float = 0.0
+    total_protein: float = 0.0
+    total_carbs: float = 0.0
+    total_fats: float = 0.0
+
+
+class FoodAnalysisRequest(BaseModel):
+    query: str = Field(..., description="Meal description, dish name, or food items")
+    image_name: Optional[str] = None
+
+
+class FoodAnalysisResponse(BaseModel):
+    meal_name: str
+    category: str = "Meal"
+    total_calories: float
+    total_protein: float
+    total_carbs: float
+    total_fats: float
+    fiber: float = 0.0
+    glycemic_index: str = "Moderate GI"
+    items: List[FoodItemBreakdown] = []

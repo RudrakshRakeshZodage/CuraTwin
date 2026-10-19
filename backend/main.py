@@ -16,9 +16,15 @@ from schemas import (
     PredictionInput,
     PredictionOutput,
     HealthResponse,
+    FoodAnalysisRequest,
+    FoodAnalysisResponse,
+    FoodItemBreakdown,
     VALID_GENDERS,
     VALID_SMOKING_HISTORIES,
 )
+import json
+import urllib.request
+import urllib.error
 from model_loader import (
     model_loader,
     ModelLoadingError,
@@ -199,8 +205,99 @@ def predict_diabetes(payload: PredictionInput) -> PredictionOutput:
             detail=f"An unexpected error occurred during prediction computation: {str(exc)}"
         )
 
+@app.post("/api/analyze-food", response_model=FoodAnalysisResponse, summary="Analyze Meal Nutrition via Real AI")
+def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse:
+    """
+    Evaluate meal query using real AI language model (Groq) to determine
+    calories, macronutrients (protein, carbs, fats), fiber, glycemic index,
+    and individual plate ingredients for diabetic patients.
+    """
+    groq_api_key = os.environ.get("GROQ_API_KEY", "")
+    if not groq_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="GROQ_API_KEY environment variable is not configured. Please add GROQ_API_KEY in Render environment settings."
+        )
 
-if __name__ == "__main__":
+    # Clean query if it is just a filename
+    raw_query = payload.query.strip()
+    if any(raw_query.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".gif"]):
+        clean_name = raw_query.rsplit(".", 1)[0].replace("_", " ").replace("-", " ")
+        meal_desc = f"Diabetic-friendly meal based on plate image '{clean_name}'"
+    else:
+        meal_desc = raw_query or "Balanced diabetic-friendly meal plate"
+
+    prompt = (
+        f"You are a clinical diabetic nutrition AI for CuraTwin. Analyze the nutritional breakdown of this meal:\n"
+        f"'{meal_desc}'\n\n"
+        f"Estimate the realistic portion, total calories, macronutrients (in grams), dietary fiber (in grams), "
+        f"glycemic index category ('Low GI', 'Moderate GI', or 'High GI'), meal category ('Breakfast', 'Lunch', 'Dinner', or 'Snack'), "
+        f"and itemized plate components with their individual calories, protein, carbs, and fats.\n"
+        f"Return ONLY a valid JSON object matching this schema:\n"
+        f"{{\n"
+        f'  "meal_name": "Short descriptive name",\n'
+        f'  "category": "Breakfast, Lunch, Dinner, or Snack",\n'
+        f'  "total_calories": float,\n'
+        f'  "total_protein": float,\n'
+        f'  "total_carbs": float,\n'
+        f'  "total_fats": float,\n'
+        f'  "fiber": float,\n'
+        f'  "glycemic_index": "Low GI, Moderate GI, or High GI",\n'
+        f'  "items": [\n'
+        f'    {{"item_name": "string", "total_calories": float, "total_protein": float, "total_carbs": float, "total_fats": float}}\n'
+        f"  ]\n"
+        f"}}"
+    )
+
+    req_data = json.dumps({
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a professional clinical dietitian assistant for diabetic patients. Output strictly JSON."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "model": "openai/gpt-oss-120b",
+        "temperature": 0.2,
+        "response_format": {"type": "json_object"}
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=req_data,
+        headers={
+            "Authorization": f"Bearer {groq_api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "CuraTwin-FastAPI/1.1"
+        },
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=18) as resp:
+            resp_body = json.loads(resp.read().decode("utf-8"))
+            content = resp_body["choices"][0]["message"]["content"]
+            parsed_json = json.loads(content)
+            return FoodAnalysisResponse(**parsed_json)
+    except urllib.error.HTTPError as http_err:
+        err_msg = http_err.read().decode("utf-8", errors="replace")
+        logger.error(f"Groq API HTTP error: {http_err.code} - {err_msg}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Groq AI service returned HTTP {http_err.code}: {err_msg}"
+        )
+    except Exception as exc:
+        logger.exception("Failed to analyze food via AI")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze food nutrition via AI: {str(exc)}"
+        )
+
+
+
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

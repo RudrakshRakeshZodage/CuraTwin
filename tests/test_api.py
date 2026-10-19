@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
+import os
+import json
 import joblib
 import pandas as pd
 import numpy as np
@@ -369,3 +371,52 @@ def test_direct_model_vs_api_consistency(client):
         # 3. Assert mathematical equality
         assert api_data["prediction"] == expected_pred, f"Prediction mismatch for case {case}"
         assert abs(api_data["probability"] - expected_prob) < 1e-4, f"Probability mismatch for case {case}"
+
+
+from unittest.mock import patch, MagicMock
+
+def test_food_analysis_endpoint(client):
+    """Verify that /api/analyze-food parses and returns a valid nutritional breakdown."""
+    mock_groq_response = {
+        "choices": [
+            {
+                "message": {
+                    "content": json.dumps({
+                        "meal_name": "Grilled Chicken and Broccoli",
+                        "category": "Lunch",
+                        "total_calories": 420.0,
+                        "total_protein": 38.0,
+                        "total_carbs": 35.0,
+                        "total_fats": 8.0,
+                        "fiber": 6.0,
+                        "glycemic_index": "Low GI",
+                        "items": [
+                            {"item_name": "Chicken Breast", "total_calories": 220.0, "total_protein": 35.0, "total_carbs": 0.0, "total_fats": 4.0},
+                            {"item_name": "Steamed Broccoli", "total_calories": 50.0, "total_protein": 3.0, "total_carbs": 10.0, "total_fats": 0.5},
+                            {"item_name": "Brown Rice", "total_calories": 150.0, "total_protein": 3.0, "total_carbs": 32.0, "total_fats": 1.0}
+                        ]
+                    })
+                }
+            }
+        ]
+    }
+    mock_resp = MagicMock()
+    mock_resp.read.return_value = json.dumps(mock_groq_response).encode("utf-8")
+    mock_resp.__enter__.return_value = mock_resp
+
+    with patch.dict(os.environ, {"GROQ_API_KEY": "mock_test_key"}):
+        with patch("urllib.request.urlopen", return_value=mock_resp):
+            payload = {
+                "query": "Grilled chicken breast with steamed broccoli and brown rice"
+            }
+            response = client.post("/api/analyze-food", json=payload)
+            assert response.status_code == 200
+            data = response.json()
+            assert data["meal_name"] == "Grilled Chicken and Broccoli"
+            assert data["total_calories"] == 420.0
+            assert data["total_protein"] == 38.0
+            assert data["total_carbs"] == 35.0
+            assert data["total_fats"] == 8.0
+            assert data["glycemic_index"] == "Low GI"
+            assert len(data["items"]) == 3
+

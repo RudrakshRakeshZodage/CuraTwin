@@ -48,6 +48,9 @@ cover/
 
 # Environments & local configs
 .env
+*.png
+*.jpg
+*.jpeg
 .env.local
 
 # Editor directories and files
