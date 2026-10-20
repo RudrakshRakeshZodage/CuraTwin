@@ -49,6 +49,8 @@ cover/
 # Environments & local configs
 .env
 *.png
+!1_1.png
+!images/*.png
 *.jpg
 *.jpeg
 .env.local
