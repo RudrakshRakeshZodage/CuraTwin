@@ -44,14 +44,13 @@ As required by the project evaluation criteria, all mandatory items are comprehe
 
 ## 2. College / Incubator Information
 
-- **Institution:** Srushti Shinde - Vishwakarma Institute Of Technology, Pune 
-- **Department:** Department of Computer Science Engineering - Artificial Intelligence & Machine Learning 
-- **Institution:** Sumedha Murkute - Vishwakarma Institute Of Technology, Pune 
-- **Department:** Department of Computer Science Engineering - Artificial Intelligence & Machine Learning
-- **Institution:** Rudraksh Zodage - Viva Institute of Technology, Virar
-- **Department:** Artificial Intelligence & Machine Learning 
-- **Institution:** Kavyya Patil - Lokmanya Tilak College of Engineering , Nerul 
-- **Department:** Cyber Security & Internet of Things 
+| Sr. No. | Student Name | Institution | Department |
+|---------|--------------|-------------|------------|
+| 1 | Srushti Shinde | Vishwakarma Institute of Technology, Pune | Computer Science Engineering – Artificial Intelligence & Machine Learning |
+| 2 | Sumedha Murkute | Vishwakarma Institute of Technology, Pune | Computer Science Engineering – Artificial Intelligence & Machine Learning |
+| 3 | Rudraksh Zodage | Viva Institute of Technology, Virar | Artificial Intelligence & Machine Learning |
+| 4 | Kavyya Patil | Lokmanya Tilak College of Engineering, Nerul | Cyber Security & Internet of Things |
+
 
 ---
 
