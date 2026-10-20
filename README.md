@@ -32,10 +32,13 @@ As required by the project evaluation criteria, all mandatory items are comprehe
 
 ## 1. Team Details
 
-| Name | Role | Responsibilities | Contact / GitHub |
-|---|---|---|---|
-| **Rudraksh Rakesh Zodage** | Project Lead & Full-Stack / ML Engineer | Dual ML Model Training, Pipeline Engineering, API & Frontend Integration | [@RudrakshRakeshZodage](https://github.com/RudrakshRakeshZodage) |
-| **CuraTwin Research Collaborator(s)** | Clinical ML & Synthetic Data Researchers | Synthea Cohort Generation, Feature Space Design, Validation Protocols | `contact@curatwin.org` |
+| Name |Contact / GitHub |
+|---|---|
+| **Srushti Kashinath Shinde** | [@SrushtiShinde](https://github.com/srushtikshinde95) |
+| **Sumedha Murkute** | [@SumedhaMurkute](https://github.com/sumedha-murkute22) |
+| **Rudraksh Rakesh Zodage** | [@RudrakshZodage](https://github.com/RudrakshRakeshZodage) |
+| **Kavyya Ganesh Patil** | [@KavyyaPatil](https://github.com/TechnoDemon22) |
+
 
 ---
 
