@@ -256,7 +256,7 @@ flowchart LR
 
 ## 11. Presentation in PDF/PPT Format (Covering Project Details and Outcomes)
 
-- 📑 **Project Presentation Deck (PDF):** [docs/CuraTwin_Project_Presentation.pdf](docs/CuraTwin_Project_Presentation.pdf)
+- 📑 **Project Presentation Deck (PDF):** [docs/CuraTwin_Project_Presentation.pdf]()
 
 ---
 
