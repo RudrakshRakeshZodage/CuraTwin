@@ -43,13 +43,17 @@ CuraTwin: An AI-Powered Digital Twin for Type 2 Diabetes Monitoring
 
 ## 4. Problem Statement
 
-Over 537 million adults globally live with diabetes, facing both acute daily glycemic excursions (hyperglycemia >180 mg/dL and severe hypoglycemia <70 mg/dL) and elevated long-term cardiovascular mortality. Cardiovascular disease (CVD) accounts for more than **50% of all fatalities** in patients with type 2 diabetes.
+Type 2 Diabetes Mellitus (T2DM) is a chronic metabolic disorder that requires continuous monitoring and effective management to reduce the risk of complications. One of the key challenges in diabetes management is identifying potentially harmful fluctuations in blood glucose levels, particularly hyperglycemia, before they progress into more serious health concerns.
 
-However, existing clinical and wearable software suffers from four fundamental shortcomings:
-1. **Isolated Snapshot Diagnostics:** Traditional models rely on intermittent clinic visits without streaming sensor context.
-2. **Data Leakage in Research:** Longitudinal synthetic datasets often inadvertently leak future diagnostic targets into input vectors or have patient overlap across train/test splits.
-3. **Severe Class Imbalance in Low-Incidence Events:** Real-world incident myocardial infarction (MI) and stroke have low annual incidence (~0.7%), causing uncalibrated standard models to predict false negatives for 100% of at-risk patients.
-4. **Lack of Digital-Twin Feedback:** Patients lack continuous decision-support that bridges instantaneous meal kinetics with 365-day cardiovascular vulnerability.
+Conventional diabetes management often relies on periodic clinical assessments, laboratory measurements such as HbA1c, and individual glucose readings. Although these measurements provide valuable information about a patient's health, they may not fully capture the dynamic relationship between glucose fluctuations, physical activity, sleep patterns, heart rate, medication adherence, and other factors that influence an individual's glycemic state.
+
+The challenge is to develop a personalized, data-driven system that integrates historical Electronic Health Record (EHR) information with dynamic physiological data to identify patterns associated with elevated blood glucose and estimate the risk of a future hyperglycemic event.
+
+CuraTwin addresses this challenge by developing a proof-of-concept Digital Twin for Type 2 Diabetes that combines historical clinical information with simulated or available wearable telemetry to represent a patient's evolving health state and support hyperglycemia risk assessment.
+
+The system aims to demonstrate how synthetic patient records, physiological time-series data, machine learning, and interactive visualization can be integrated into a unified framework for proactive diabetes monitoring.
+
+The prototype uses a Kaggle-sourced diabetes dataset for the documented diabetes classification component and Synthea-generated synthetic patient records to support the EHR integration workflow. Dynamic physiological measurements can be incorporated through simulated or suitable open-source telemetry data.
 
 ---
 
