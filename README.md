@@ -1,4 +1,4 @@
-# 🩺 CuraTwin: AI-Powered Patient Digital Twin for Glycemic Excursion & Longitudinal Cardiovascular Risk
+# 🩺 CuraTwin:An AI-Powered Digital Twin for Type 2 Diabetes Monitoring 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python: 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
@@ -9,26 +9,6 @@
 
 ---
 
-## 📋 Submission Checklist & Verification Matrix
-
-As required by the project evaluation criteria, all mandatory items are comprehensively detailed below:
-
-| # | Mandatory Item | Status | Section Reference |
-|:---:|:---|:---:|:---|
-| 1 | **Team details** | ✅ Included | [1. Team Details](#1-team-details) |
-| 2 | **College/Incubator information** | ✅ Included | [2. College / Incubator Information](#2-college--incubator-information) |
-| 3 | **Project Title** | ✅ Included | [3. Project Title](#3-project-title) |
-| 4 | **Problem Statement** | ✅ Included | [4. Problem Statement](#4-problem-statement) |
-| 5 | **Healthcare Use Case** | ✅ Included | [5. Healthcare Use Case](#5-healthcare-use-case) |
-| 6 | **Technical Stack** | ✅ Included | [6. Technical Stack](#6-technical-stack) |
-| 7 | **AI/ML Model or Framework Details** | ✅ Included | [7. AI/ML Model & Framework Details](#7-aiml-model--framework-details) |
-| 8 | **15-20 minute Demo Video (Unlisted YouTube)** | ✅ Included | [8. Project Demonstration Video](#8-project-demonstration-video-1520-minutes) |
-| 9 | **Open-source License Details** | ✅ Included | [9. Open-Source License Details](#9-open-source-license-details) |
-| 10 | **Architecture Diagram in PDF/PPT format** | ✅ Included | [10. Architecture Diagram](#10-architecture-diagram-pdf--ppt-format) |
-| 11 | **Presentation in PDF/PPT format (Outcomes)** | ✅ Included | [11. Presentation Covering Details & Outcomes](#11-presentation-in-pdfppt-format-covering-project-details-and-outcomes) |
-| 12 | **Publicly Accessible Links & Files** | ✅ Included | [12. Public Accessibility Confirmation](#12-public-accessibility-confirmation) |
-
----
 
 ## 1. Team Details
 
