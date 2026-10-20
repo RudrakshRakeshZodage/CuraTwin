@@ -32,29 +32,35 @@ As required by the project evaluation criteria, all mandatory items are comprehe
 
 ## 1. Team Details
 
-| Name | Contact / GitHub |
+| Name |Contact / GitHub |
 |---|---|
 | **Srushti Kashinath Shinde** | [@SrushtiShinde](https://github.com/srushtikshinde95) |
 | **Sumedha Murkute** | [@SumedhaMurkute](https://github.com/sumedha-murkute22) |
 | **Rudraksh Rakesh Zodage** | [@RudrakshZodage](https://github.com/RudrakshRakeshZodage) |
 | **Kavyya Ganesh Patil** | [@KavyyaPatil](https://github.com/TechnoDemon22) |
 
+
 ---
 
 ## 2. College / Incubator Information
 
-- **Institution:** College of Engineering & Technology
-- **Department:** Department of Computer Engineering / Artificial Intelligence & Data Science
-- **Incubator / Innovation Center:** Healthcare AI & Biomedical Informatics Research Lab / Technology Business Incubator (TBI)
-- **Academic Year:** 2025–2026
+- **Institution:** Srushti Shinde - Vishwakarma Institute Of Technology, Pune 
+- **Department:** Department of Computer Science Engineering - Artificial Intelligence & Machine Learning 
+- **Institution:** Sumedha Murkute - Vishwakarma Institute Of Technology, Pune 
+- **Department:** Department of Computer Science Engineering - Artificial Intelligence & Machine Learning
+- **Institution:** Rudraksh Zodage - Viva Institute of Technology, Virar
+- **Department:** Artificial Intelligence & Machine Learning 
+- **Institution:** Kavyya Patil - Lokmanya Tilak College of Engineering , Nerul 
+- **Department:** Cyber Security & Internet of Things 
 
 ---
 
 ## 3. Project Title
 
-**CuraTwin: AI-Powered Longitudinal Patient Digital Twin for Short-Term Glycemic Excursion & 365-Day Incident Cardiovascular Risk Forecasting**
+CuraTwin: An AI-Powered Digital Twin for Type 2 Diabetes Monitoring 
 
 ---
+
 
 ## 4. Problem Statement
 
