@@ -39,8 +39,6 @@
 CuraTwin: An AI-Powered Digital Twin for Type 2 Diabetes Monitoring 
 
 ---
-
-
 ## 4. Problem Statement
 
 Type 2 Diabetes Mellitus (T2DM) is a chronic metabolic disorder that requires continuous monitoring and effective management to reduce the risk of complications. One of the key challenges in diabetes management is identifying potentially harmful fluctuations in blood glucose levels, particularly hyperglycemia, before they progress into more serious health concerns.
@@ -63,31 +61,31 @@ CuraTwin focuses on identifying and assessing the risk of hyperglycemia in indiv
 
 The proposed system combines two complementary data streams:
 
-A. Static and Historical Data — Electronic Health Records
+### A. Static and Historical Data — Electronic Health Records
 
 Historical patient information may include:
 
-Demographic information, including age and gender.
-Diabetes history and previous diagnoses.
-Laboratory indicators such as HbA1c and blood glucose measurements, where available.
-Relevant medical history and comorbidities.
-Medication and treatment history, where available.
+- Demographic information, including age and gender.
+- Diabetes history and previous diagnoses.
+- Laboratory indicators such as HbA1c and blood glucose measurements, where available.
+- Relevant medical history and comorbidities.
+- Medication and treatment history, where available.
 
 Synthea is used to generate synthetic patient records for demonstrating the EHR component without relying on identifiable real-patient information.
 
-B. Dynamic Data — Wearables and Medical IoT
+### B. Dynamic Data — Wearables and Medical IoT
 
 The dynamic data stream may include:
 
-Continuous glucose monitoring (CGM) measurements.
-Heart-rate measurements.
-Physical activity and step counts.
-Sleep duration and patterns.
-Meal-related information and medication logs, where available.
+- Continuous glucose monitoring (CGM) measurements.
+- Heart-rate measurements.
+- Physical activity and step counts.
+- Sleep duration and patterns.
+- Meal-related information and medication logs, where available.
 
 These measurements can be simulated or obtained from appropriately licensed open-source datasets. The prototype can use incoming or simulated readings to update the patient's displayed health state over time.
 
-C. Digital Twin and Risk Assessment
+### C. Digital Twin and Risk Assessment
 
 The Digital Twin integrates the available historical and dynamic information into a unified patient representation. The dashboard displays relevant clinical indicators, physiological trends, and available model outputs.
 
@@ -95,40 +93,8 @@ The intended predictive task is to estimate whether a patient is at risk of expe
 
 This future-event prediction requires appropriately labelled time-series data and a model trained and evaluated for that specific task. The existing diabetes classification model alone does not establish the ability to predict future hyperglycemia.
 
-3. Proposed Solution
-
-CuraTwin proposes a modular healthcare Digital Twin framework with the following workflow:
-
-Patient Data Integration: Ingest historical clinical information from structured datasets and synthetic EHR records.
-Physiological Telemetry: Incorporate simulated or available wearable and CGM time-series measurements.
-Data Processing: Clean, transform, and align the available clinical and physiological features.
-Machine Learning: Apply the existing diabetes classification model to its intended classification task and develop or evaluate a separate hyperglycemia prediction model if suitable labelled time-series data are available.
-Digital Twin Representation: Maintain a consolidated representation of the patient's recorded clinical information and changing physiological measurements.
-Clinician-Oriented Dashboard: Visualize glucose trends, patient history, telemetry, and available prediction results to support clinical review.
-4. Expected Outcome
-
-The expected outcome is a working proof of concept demonstrating how historical EHR information and dynamic physiological telemetry can be brought together in a patient-specific Digital Twin.
-
-## Expected Outcomes
-
-The expected outcomes of CuraTwin include:
-
-1. **Integration of Synthetic EHR and Dynamic Physiological Data:** Combine synthetic Electronic Health Record (EHR) data with dynamic physiological measurements from simulated or available wearable telemetry.
-
-2. **Real-Time Health Monitoring and Visualization:** Visualize changing patient health indicators, including glucose levels and other available physiological measurements, through an interactive dashboard.
-
-3. **Machine-Learning-Based Diabetes Classification:** Use the existing machine learning model to classify diabetes status based on its supported input features.
-
-4. **Short-Term Hyperglycemia Risk Prediction:** Establish a pathway toward predicting short-term hyperglycemia risk using a dedicated model trained and evaluated on appropriately labelled time-series data.
-
-5. **Clinician-Oriented Dashboard:** Provide a centralized dashboard for reviewing patient information, historical records, physiological trends, and available machine learning outputs.
-
-
-
-
-CuraTwin is a research and demonstration prototype, not a clinically validated diagnostic or treatment system. Any hyperglycemia risk predictions must be evaluated before being considered suitable for real-world clinical use.
-
 ---
+
 
 ## 6. Technical Stack
 
@@ -171,49 +137,14 @@ The project deploys **two strictly independent, specialized machine learning mod
 
 ---
 
-## 8. Project Demonstration Video (15–20 Minutes)
+## 8. Project Demonstration Video 
 
-The complete end-to-end walkthrough video covering system architecture, model training pipelines, live wearable sensor streaming, and dual digital twin inference is available as an unlisted YouTube video:
-
-▶️ **[Watch CuraTwin Comprehensive Project Demo Video (15–20 min)](https://youtu.be/dQw4w9WgXcQ)**  
-*(Replace placeholder link with your uploaded unlisted video URL)*
-
-### Video Breakdown & Timestamps:
-- `00:00 - 03:00` — Executive Summary, Clinical Motivation & Problem Statement
-- `03:00 - 06:30` — Synthetic Longitudinal Data Generation & Zero-Leakage Pipeline Architecture
-- `06:30 - 10:45` — Model A (XGBoost Glucose Excursion) & Model B (Balanced RF Cardiovascular Risk) Training & Metrics
-- `10:45 - 15:30` — Live Interactive UI Walkthrough: CGM Sensor Streaming & 1-Year CV Risk Triage
-- `15:30 - 18:30` — FastAPI Backend Architecture, Automated Test Execution (29/29 tests), and Conclusion
+▶️ **[Watch CuraTwin Comprehensive Project Demo]([https://youtu.be/dQw4w9WgXcQ](https://drive.google.com/file/d/1mVfBOl8IvXvJ7R9L37TW4S9PMmEYmGaG/view?usp=sharing))**  
 
 ---
 
 ## 9. Open-Source License Details
 
-This project is licensed under the **MIT Open Source License**.
-
-```text
-MIT License
-
-Copyright (c) 2026 Rudraksh Rakesh Zodage & CuraTwin Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
 Full license file: [LICENSE](LICENSE)
 
 ---
@@ -256,7 +187,7 @@ flowchart LR
 
 ## 11. Presentation in PDF/PPT Format (Covering Project Details and Outcomes)
 
-- 📑 **Project Presentation Deck (PDF):** [docs/CuraTwin_Project_Presentation.pdf]()
+- 📑 **Project Presentation Deck (PDF):** [docs/CuraTwin_Project_Presentation.pdf](docs/CuraTwin_Project_Presentation.pdf)
 
 ---
 
