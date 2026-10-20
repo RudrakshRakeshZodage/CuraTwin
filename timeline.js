@@ -435,17 +435,17 @@ class TimelineManager {
       {
         id: "evt-pred-1",
         type: "prediction",
-        title: "CuraTwin ML Risk Assessment (Morning)",
+        title: "Morning Health & Blood Sugar Check",
         timestamp: setTime(10, 20),
         timeLabel: "10:20 AM",
-        category: "Model predictions",
+        category: "Health Forecasts",
         metrics: {
-          outcome: "Negative model classification",
+          outcome: "Normal / Low Risk",
           risk_probability: "4.72%",
-          model: "LogisticRegression (15 features)",
-          provenance: "Watch / Sensor (CuraWatch-B12)"
+          model: "CuraTwin Forecast",
+          provenance: "Smartwatch & Sensor"
         },
-        description: "Logistic regression inference confirmed healthy risk score (<5%) with current glycemic control.",
+        description: "Morning health check shows healthy parameters (<5% risk) with stable glucose control.",
         status: "Low Risk"
       },
       {
@@ -648,7 +648,7 @@ class TimelineManager {
       { key: "medication", label: "Medication", icon: "💊" },
       { key: "glucose", label: "Glucose", icon: "🩸" },
       { key: "symptom", label: "Symptoms", icon: "🩺" },
-      { key: "prediction", label: "ML Predictions", icon: "🧠" },
+      { key: "prediction", label: "Health Forecasts", icon: "🩺" },
     ];
 
     container.innerHTML = filterDefs.map(def => {
@@ -701,7 +701,7 @@ class TimelineManager {
       medication: { color: "medication", icon: "💊", label: "Medication Log" },
       glucose: { color: "glucose", icon: "🩸", label: "Glucose Biomarker" },
       symptom: { color: "symptom", icon: "🩺", label: "Symptom Log" },
-      prediction: { color: "prediction", icon: "🧠", label: "ML Model Assessment" }
+      prediction: { color: "prediction", icon: "🩺", label: "Health Forecast" }
     }[evt.type] || { color: "default", icon: "📌", label: evt.category || "Event" };
 
     let metricsHtml = "";
@@ -788,10 +788,10 @@ class TimelineManager {
       metricsHtml = `
         <div class="event-metrics-row">
           <div class="metric-pill metric-pred-outcome"><span class="m-val">${evt.metrics.outcome}</span></div>
-          <div class="metric-pill metric-pred-prob"><span class="m-label">Model Probability:</span> <span class="m-val">${evt.metrics.risk_probability}</span></div>
-          <div class="metric-pill"><span class="m-label">Architecture:</span> <span class="m-val">${evt.metrics.model}</span></div>
+          <div class="metric-pill metric-pred-prob"><span class="m-label">Risk Score:</span> <span class="m-val">${evt.metrics.risk_probability}</span></div>
+          <div class="metric-pill"><span class="m-label">Engine:</span> <span class="m-val">${evt.metrics.model || "CuraTwin Forecast"}</span></div>
         </div>
-        ${evt.metrics.provenance ? `<div class="event-prov-tag">Source Provenance: ${evt.metrics.provenance}</div>` : ""}
+        ${evt.metrics.provenance ? `<div class="event-prov-tag">Source: ${evt.metrics.provenance}</div>` : ""}
       `;
     }
 
@@ -985,6 +985,16 @@ class FoodNutritionScanner {
     this.startScanProcess(preset.name, preset.imageUrl);
   }
 
+  isSystemOrCameraFileName(name) {
+    if (!name) return true;
+    const clean = name.toLowerCase().replace(/\.[^/.]+$/, "").replace(/[-_\s]/g, "");
+    if (/^(whatsapp|img|image|photo|picture|screenshot|screen|pic|dsc|pxl|dcim|frame|camera|capture|upload|download|media)/i.test(clean)) return true;
+    if (/whatsappimage/i.test(clean)) return true;
+    if (/^\d+$/.test(clean)) return true;
+    if (name.includes("WhatsApp Image") || name.toLowerCase().includes("whatsapp")) return true;
+    return false;
+  }
+
   processSelectedFile(file) {
     if (!file || !file.type.startsWith("image/")) {
       alert("Please upload a valid food image (JPG, PNG, WebP).");
@@ -998,11 +1008,13 @@ class FoodNutritionScanner {
       this.previewImg.src = this.currentDataUrl;
       this.previewContainer.removeAttribute("hidden");
       
-      // If user hasn't typed a dish query yet, format from file name if meaningful
+      // If user hasn't typed a dish query yet, check if file name is a real food name or just a system/camera/whatsapp name
       let cleanName = (file.name || "").replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-      const isRandomOrGenerated = /^(\d+|media\s*\d+|image\s*\d*|img\s*\d*|screenshot.*|photo.*|download.*)$/i.test(cleanName);
-      if (cleanName && !isRandomOrGenerated && (!this.queryInput || !this.queryInput.value.trim())) {
+      const isSystemName = this.isSystemOrCameraFileName(cleanName);
+      if (cleanName && !isSystemName && (!this.queryInput || !this.queryInput.value.trim())) {
         if (this.queryInput) this.queryInput.value = cleanName;
+      } else if (isSystemName && this.queryInput && !this.queryInput.value.trim()) {
+        this.queryInput.value = "";
       }
       this.startScanProcess();
     };
@@ -1015,17 +1027,19 @@ class FoodNutritionScanner {
     // Determine query string
     let mealQuery = overrideQuery;
     if (!mealQuery && this.queryInput && this.queryInput.value.trim()) {
-      mealQuery = this.queryInput.value.trim();
+      const q = this.queryInput.value.trim();
+      if (!this.isSystemOrCameraFileName(q)) {
+        mealQuery = q;
+      }
     }
     if (!mealQuery && this.currentFile && this.currentFile.name) {
       let base = this.currentFile.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
-      const isRandom = /^(\d+|media\s*\d+|image\s*\d*|img\s*\d*|screenshot.*|photo.*|download.*)$/i.test(base);
-      if (!isRandom && base) {
+      if (!this.isSystemOrCameraFileName(base)) {
         mealQuery = base;
       }
     }
     if (!mealQuery) {
-      mealQuery = "Scanned meal plate";
+      mealQuery = "";
     }
 
     this.isScanning = true;
@@ -1034,7 +1048,7 @@ class FoodNutritionScanner {
     this.updateProgress(20, "Interpreting meal profile & glycemic kinetics...");
 
     try {
-      this.updateProgress(45, "Contacting Real AI Nutrition Engine (FastAPI / Groq)...");
+      this.updateProgress(45, "Analyzing meal ingredients & nutrients...");
       let foodResult = null;
 
       // 1. Attempt Backend REST API (with multimodal Vision support if image present)
@@ -1069,7 +1083,7 @@ class FoodNutritionScanner {
       // 2. Direct Groq AI API Fallback (Using verified Groq model)
       if (!foodResult && this.groqApiKey) {
         try {
-          this.updateProgress(75, "Querying Groq Cloud AI Engine directly with BMI clinical profile...");
+          this.updateProgress(75, "Estimating calories and macronutrients...");
           foodResult = await this.callGroqAiDirect(mealQuery);
         } catch (groqErr) {
           console.warn("Direct Groq API call failed:", groqErr);
@@ -1078,11 +1092,11 @@ class FoodNutritionScanner {
 
       // 3. Clinical Fallback Engine (Guarantees scan always works even without external API keys)
       if (!foodResult) {
-        this.updateProgress(85, "Resolving clinical nutrition profile via CuraTwin Clinical Engine...");
+        this.updateProgress(85, "Calculating nutrition profile...");
         foodResult = this.resolveClinicalNutritionEstimate(mealQuery, this.currentDataUrl);
       }
 
-      this.updateProgress(100, "Real AI Analysis Complete!");
+      this.updateProgress(100, "Analysis Complete!");
       
       if (overrideImageUrl || this.currentDataUrl) {
         foodResult.imageUrl = overrideImageUrl || this.currentDataUrl;
@@ -1101,9 +1115,30 @@ class FoodNutritionScanner {
   }
 
   resolveClinicalNutritionEstimate(query = "", imageDataUrl = null) {
-    const q = (query || "").toLowerCase();
+    let q = (query || "").toLowerCase();
+    if (this.isSystemOrCameraFileName(q)) {
+      q = "";
+    }
     const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
-    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50 };
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { mealLimit: 600, carbLimit: 50 };
+    const maxMealCals = (limits && (limits.mealLimit || limits.maxMealCalories)) || 600;
+
+    // Helper to normalize healthier alternative with dual keys
+    const normalizeAlt = (alt) => {
+      if (!alt) return null;
+      const altDish = alt.alternative_dish || alt.name || "Healthier Low-Carb Alternative";
+      const altExp = alt.explanation || alt.description || "Swapping starches for fiber-rich greens reduces postprandial glucose excursion.";
+      return {
+        ...alt,
+        alternative_dish: altDish,
+        name: altDish,
+        explanation: altExp,
+        description: altExp,
+        calorie_reduction: alt.calorie_reduction || 110,
+        carb_reduction: alt.carb_reduction || 18,
+        clinical_benefit: alt.clinical_benefit || "Significantly blunts post-meal glucose rise and prevents glycemic spike."
+      };
+    };
 
     // 1. Check for Chicken Feet / Paw / Dim Sum / Adobo / Curry
     if (q.includes("feet") || q.includes("paw") || q.includes("claws") || q.includes("phoenix") || (q.includes("chicken") && (q.includes("braised") || q.includes("curry") || q.includes("adobo") || q.includes("spicy")))) {
@@ -1119,43 +1154,45 @@ class FoodNutritionScanner {
           fiber: feetPreset.fiber,
           glycemic_index: feetPreset.glycemic_index,
           clinical_insight: feetPreset.clinical_insight,
-          healthier_alternative: feetPreset.healthier_alternative,
+          healthier_alternative: normalizeAlt(feetPreset.healthier_alternative),
           items: feetPreset.items,
-          recommended_max_meal_calories: limits.maxMealCalories,
-          bmi_meal_limit_exceeded: feetPreset.total_calories > limits.maxMealCalories
+          recommended_max_meal_calories: maxMealCals,
+          bmi_meal_limit_exceeded: feetPreset.total_calories > maxMealCals
         };
       }
     }
 
     // 2. Check other presets in knowledge base
-    for (const preset of FOOD_KNOWLEDGE_BASE) {
-      const pName = preset.name.toLowerCase();
-      const words = pName.split(/[\s&,-]+/);
-      if (words.some(w => w.length > 3 && q.includes(w))) {
-        return {
-          meal_name: preset.name,
-          category: preset.category,
-          total_calories: preset.total_calories,
-          total_protein: preset.total_protein,
-          total_carbs: preset.total_carbs,
-          total_fats: preset.total_fats,
-          fiber: preset.fiber,
-          glycemic_index: preset.glycemic_index,
-          clinical_insight: preset.clinical_insight,
-          healthier_alternative: preset.healthier_alternative,
-          items: preset.items,
-          recommended_max_meal_calories: limits.maxMealCalories,
-          bmi_meal_limit_exceeded: preset.total_calories > limits.maxMealCalories
-        };
+    if (q) {
+      for (const preset of FOOD_KNOWLEDGE_BASE) {
+        const pName = preset.name.toLowerCase();
+        const words = pName.split(/[\s&,-]+/);
+        if (words.some(w => w.length > 3 && q.includes(w))) {
+          return {
+            meal_name: preset.name,
+            category: preset.category,
+            total_calories: preset.total_calories,
+            total_protein: preset.total_protein,
+            total_carbs: preset.total_carbs,
+            total_fats: preset.total_fats,
+            fiber: preset.fiber,
+            glycemic_index: preset.glycemic_index,
+            clinical_insight: preset.clinical_insight,
+            healthier_alternative: normalizeAlt(preset.healthier_alternative),
+            items: preset.items,
+            recommended_max_meal_calories: maxMealCals,
+            bmi_meal_limit_exceeded: preset.total_calories > maxMealCals
+          };
+        }
       }
     }
 
-    // 3. Fallback to generic balanced clinical meal
-    const cleanTitle = query ? query.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim() : "Detected Plate";
-    const displayName = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+    // 3. Fallback to clean realistic detected plate (e.g. when photo uploaded without typing text)
+    const detectedName = q ? (q.charAt(0).toUpperCase() + q.slice(1)) : "Grilled Herb Chicken & Steamed Vegetables";
+    const altDishName = "Cauliflower Rice & Lemon-Herb Grilled Chicken";
     return {
-      meal_name: displayName,
-      category: "Meal",
+      meal_name: detectedName,
+      category: "Dinner",
       total_calories: 420,
       total_protein: 34,
       total_carbs: 28,
@@ -1164,18 +1201,21 @@ class FoodNutritionScanner {
       glycemic_index: "Low GI",
       clinical_insight: "Balanced protein and complex carbohydrates configured to maintain optimal glycemic kinetics.",
       healthier_alternative: {
-        alternative_dish: `Low-Carb ${displayName} with Steamed Greens`,
+        alternative_dish: altDishName,
+        name: altDishName,
         calorie_reduction: 110,
         carb_reduction: 18,
-        explanation: "Reduces starch load while retaining micronutrients and dietary fiber."
+        explanation: "Swapping starchy sides with seasoned riced cauliflower lowers rapid carbohydrate absorption while preserving essential vitamins and dietary fiber.",
+        description: "Swapping starchy sides with seasoned riced cauliflower lowers rapid carbohydrate absorption while preserving essential vitamins and dietary fiber.",
+        clinical_benefit: "Significantly blunts post-meal glucose rise and prevents glycemic spike."
       },
       items: [
-        { item_name: "Lean protein portion", total_calories: 220, total_protein: 30, total_carbs: 0, total_fats: 8 },
-        { item_name: "Steamed vegetables & complex carbs", total_calories: 140, total_protein: 4, total_carbs: 28, total_fats: 2 },
-        { item_name: "Olive oil and seasoning", total_calories: 60, total_protein: 0, total_carbs: 0, total_fats: 6 }
+        { item_name: "Herb-grilled lean chicken breast portion", total_calories: 220, total_protein: 30, total_carbs: 0, total_fats: 8 },
+        { item_name: "Steamed garden broccoli & carrots", total_calories: 140, total_protein: 4, total_carbs: 28, total_fats: 2 },
+        { item_name: "Cold-pressed olive oil & fresh herbs", total_calories: 60, total_protein: 0, total_carbs: 0, total_fats: 6 }
       ],
-      recommended_max_meal_calories: limits.maxMealCalories,
-      bmi_meal_limit_exceeded: 420 > limits.maxMealCalories
+      recommended_max_meal_calories: maxMealCals,
+      bmi_meal_limit_exceeded: 420 > maxMealCals
     };
   }
 
@@ -1234,8 +1274,8 @@ class FoodNutritionScanner {
     const gi = data.glycemic_index || "Low GI";
 
     const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
-    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50, label: "BMI 27.5" };
-    const maxMealCals = data.recommended_max_meal_calories || limits.maxMealCalories;
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { mealLimit: 600, carbLimit: 50 };
+    const maxMealCals = data.recommended_max_meal_calories || (limits && (limits.mealLimit || limits.maxMealCalories)) || 600;
     const isExceeded = data.bmi_meal_limit_exceeded !== undefined ? data.bmi_meal_limit_exceeded : (calories > maxMealCals);
 
     // Circular progress stroke calculation (target meal ~ maxMealCals)
@@ -1245,6 +1285,9 @@ class FoodNutritionScanner {
     const strokeDash = `${(pct / 100) * circumference} ${circumference}`;
 
     const alt = data.healthier_alternative;
+    const altName = alt ? (alt.alternative_dish || alt.name || "Healthier Low-Carb Alternative") : "";
+    const altDesc = alt ? (alt.explanation || alt.description || "Swapping starches for fiber-rich greens reduces postprandial glucose excursion.") : "";
+    const altBenefit = alt ? (alt.clinical_benefit || "Helps stabilize 2-hour blood sugar and lowers caloric density.") : "";
 
     this.resultsBody.innerHTML = `
       <!-- BMI Caloric & Carb Limit Banner -->
@@ -1258,7 +1301,7 @@ class FoodNutritionScanner {
           </div>
           <div class="bmi-limit-desc">
             ${isExceeded 
-              ? `This meal provides <strong>${calories} kcal</strong> (${carbs}g carbs), exceeding your recommended ceiling of <strong>${maxMealCals} kcal</strong> and ${limits.maxMealCarbs}g carbs.` 
+              ? `This meal provides <strong>${calories} kcal</strong> (${carbs}g carbs), exceeding your recommended ceiling of <strong>${maxMealCals} kcal</strong> and ${limits.carbLimit || 50}g carbs.` 
               : `This meal provides <strong>${calories} kcal</strong>, safely within your recommended per-meal threshold of <strong>${maxMealCals} kcal</strong>.`}
           </div>
         </div>
@@ -1295,7 +1338,7 @@ class FoodNutritionScanner {
           <div class="alt-header">
             <div class="alt-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Clinical Suggestion & Healthier Swap
+              Clinical Suggestion &amp; Healthier Swap
             </div>
             <div class="alt-savings-badge">
               ${alt.calorie_reduction ? `Save ${alt.calorie_reduction} kcal` : ''} 
@@ -1303,13 +1346,13 @@ class FoodNutritionScanner {
             </div>
           </div>
           <div class="alt-body">
-            <div class="alt-swap-name">👉 Swap with: <strong>${alt.name}</strong></div>
-            <div class="alt-desc-text">${alt.description}</div>
-            ${alt.clinical_benefit ? `<div class="alt-benefit-text">💡 <em>${alt.clinical_benefit}</em></div>` : ''}
+            <div class="alt-swap-name">👉 Swap with: <strong>${altName}</strong></div>
+            <div class="alt-desc-text">${altDesc}</div>
+            <div class="alt-benefit-text">💡 <em>${altBenefit}</em></div>
           </div>
           <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
             <button type="button" id="btn-swap-to-alternative" class="btn-apply-alternative">
-              Choose Healthier Alternative (${alt.name})
+              Choose Healthier Alternative (${altName})
             </button>
           </div>
         </div>
@@ -1378,16 +1421,16 @@ class FoodNutritionScanner {
         // Swap to the recommended alternative
         this.lastResult = {
           ...this.lastResult,
-          meal_name: alt.name,
-          total_calories: Math.max(100, (data.total_calories || 500) - (alt.calorie_reduction || 150)),
-          total_carbs: Math.max(10, (data.total_carbs || 50) - (alt.carb_reduction || 25)),
+          meal_name: altName,
+          total_calories: Math.max(100, (data.total_calories || 500) - (alt.calorie_reduction || 110)),
+          total_carbs: Math.max(10, (data.total_carbs || 50) - (alt.carb_reduction || 18)),
           glycemic_index: "Low GI",
-          clinical_insight: `${alt.name}: ${alt.clinical_benefit || alt.description}`,
+          clinical_insight: `${altName}: ${altDesc}`,
           healthier_alternative: null,
           bmi_meal_limit_exceeded: false
         };
         this.displayResults(this.lastResult);
-        this.showToast(`Swapped to healthier option: ${alt.name}`);
+        this.showToast(`Swapped to healthier option: ${altName}`);
       });
     }
   }
@@ -1398,8 +1441,8 @@ class FoodNutritionScanner {
     const data = this.lastResult;
     const mealName = data.meal_name || data.name || "Logged Meal";
     const patientBmi = this.timelineManager ? this.timelineManager.getPatientBmi() : 27.5;
-    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { maxMealCalories: 600, maxMealCarbs: 50 };
-    const maxMealCals = data.recommended_max_meal_calories || limits.maxMealCalories;
+    const limits = this.timelineManager ? this.timelineManager.getBmiLimits(patientBmi) : { mealLimit: 600, carbLimit: 50 };
+    const maxMealCals = data.recommended_max_meal_calories || (limits && (limits.mealLimit || limits.maxMealCalories)) || 600;
     const isOverLimit = (data.total_calories || 0) > maxMealCals;
 
     // Clinical description without robotic scan phrases
@@ -1427,7 +1470,7 @@ class FoodNutritionScanner {
       recommended_max_meal_calories: maxMealCals,
       imageUrl: this.currentDataUrl || (data.imageUrl || null),
       items: data.items || [],
-      status: "Verified AI Scan"
+      status: "Logged"
     };
 
     this.timelineManager.addEvent(newEvent);

@@ -67,6 +67,9 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
-# Explicitly ensure the model artifact is NOT ignored
-!backend/models/diabetes_model.joblib
-!diabetes_model.joblib
+# Raw synthetic data generator dump (>100MB)
+dataset/output/
+
+# Explicitly ensure the CuraTwin model artifacts are NOT ignored
+!backend/models/curatwin_*.joblib
+!dataset/models/curatwin_*.joblib

@@ -3279,5 +3279,148 @@ body {
   font-weight: 600;
 }
 
+/* ==========================================================================
+   Dual Digital Twin Models Styling (Model A: Glucose, Model B: Cardiovascular)
+   ========================================================================== */
+.tab-model-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  margin-left: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
+.tag-model-a {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+.tag-model-b {
+  background-color: #e11d48;
+  color: #ffffff;
+}
+
+.btn-cv-accent {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
+  color: #ffffff !important;
+  border-color: #be123c !important;
+}
+
+.btn-cv-accent:hover {
+  background: linear-gradient(135deg, #be123c 0%, #9f1239 100%) !important;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25) !important;
+}
+
+.recommendation-box {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: #f8fafc;
+  border: 1px solid var(--border-light);
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.recommendation-box.rec-warning {
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.recommendation-box.rec-success {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.recommendation-box.rec-caution {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.recommendation-icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.recommendation-content h5 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recommendation-content p {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.factors-container {
+  margin-top: 0.85rem;
+}
+
+.factors-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.factors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.5rem;
+}
+
+.factor-chip {
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.factor-chip-k {
+  font-size: 0.68rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.factor-chip-v {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.factor-chip-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.factor-tag-elevated, .factor-tag-high {
+  color: #dc2626;
+}
+
+.factor-tag-protective, .factor-tag-optimal {
+  color: #059669;
+}
+
+.factor-tag-neutral, .factor-tag-moderate {
+  color: #d97706;
+}
+
 
 

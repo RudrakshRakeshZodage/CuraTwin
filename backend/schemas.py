@@ -241,3 +241,95 @@ class FoodAnalysisResponse(BaseModel):
     bmi_meal_limit_exceeded: Optional[bool] = Field(False, description="Flag indicating if meal exceeds recommended limit for patient BMI")
     recommended_max_meal_calories: Optional[float] = Field(None, description="Personalized maximum meal calories for patient BMI")
     items: List[FoodItemBreakdown] = []
+
+
+# -----------------------------------------------------------------------------
+# CuraTwin Dual Digital Twin Models Schemas
+# -----------------------------------------------------------------------------
+class GlucoseExcursionInput(BaseModel):
+    """Input payload for 2-hour short-term continuous glucose excursion forecasting."""
+    current_glucose_mg_dl: float = Field(..., ge=30.0, le=600.0, description="Current instantaneous CGM reading in mg/dL")
+    glucose_lag_15m: Optional[float] = Field(None, description="CGM glucose reading 15 minutes prior")
+    glucose_lag_30m: Optional[float] = Field(None, description="CGM glucose reading 30 minutes prior")
+    glucose_lag_60m: Optional[float] = Field(None, description="CGM glucose reading 60 minutes prior")
+    glucose_lag_120m: Optional[float] = Field(None, description="CGM glucose reading 120 minutes prior")
+    glucose_rate_of_change_15m: Optional[float] = Field(None, description="Velocity of glucose change (mg/dL/min)")
+    recent_meal_carbs_g: Optional[float] = Field(0.0, ge=0.0, description="Carbohydrates in grams from recent meal")
+    recent_meal_fiber_g: Optional[float] = Field(0.0, ge=0.0, description="Dietary fiber in grams")
+    recent_meal_protein_g: Optional[float] = Field(0.0, ge=0.0, description="Protein in grams")
+    recent_meal_fat_g: Optional[float] = Field(0.0, ge=0.0, description="Fat in grams")
+    time_since_last_meal_min: Optional[float] = Field(120.0, ge=0.0, description="Elapsed minutes since last meal")
+    recent_meal_slot: Optional[str] = Field("snack", description="Meal slot: breakfast, lunch, dinner, snack, or none")
+    recent_meal_category: Optional[str] = Field("snack", description="Meal type: roti-based, rice-based, millet, dal-vegetable, snack, none")
+    steps_past_hour: Optional[int] = Field(350, ge=0, description="Step count recorded over past 60 minutes")
+    current_heart_rate: Optional[float] = Field(74.0, ge=40.0, le=220.0, description="Instantaneous heart rate in bpm")
+    hrv_rmssd_ms: Optional[float] = Field(38.0, ge=5.0, description="Heart rate variability RMSSD in ms")
+    hba1c: Optional[float] = Field(6.4, ge=3.5, le=18.0, description="Baseline HbA1c percentage")
+    bmi: Optional[float] = Field(27.4, ge=10.0, le=80.0, description="Body Mass Index")
+    age_years: Optional[float] = Field(46.0, ge=18.0, le=120.0, description="Age in years")
+    sex: Optional[str] = Field("Female", description="Biological sex (Female, Male)")
+    medication_type: Optional[str] = Field("metformin", description="Active diabetes medication: insulin, metformin, none")
+    medication_adherence_pct: Optional[float] = Field(85.0, ge=0.0, le=100.0, description="Reported medication adherence percentage")
+    glucose_personal_baseline_median: Optional[float] = Field(None, description="Digital twin rolling 7-day median baseline glucose")
+    device_id: Optional[str] = Field(None, description="CGM sensor device ID")
+    measurement_timestamp: Optional[str] = Field(None, description="Sensor recording timestamp")
+
+
+class GlucoseExcursionOutput(BaseModel):
+    """Prediction outcome for 2-hour glucose excursion risk."""
+    prediction: int = Field(..., description="0: Glucose expected <= 180 mg/dL; 1: Excursion expected > 180 mg/dL")
+    excursion_risk_probability: float = Field(..., description="Estimated probability of glucose exceeding 180 mg/dL")
+    risk_tier: str = Field(..., description="Clinical risk tier: Low, Moderate, or High Excursion Risk")
+    lookahead_window_minutes: int = 120
+    model_name: str = "CuraTwin-XGBoost-GlucoseExcursion-v1"
+    top_contributing_factors: List[Dict[str, Any]] = []
+    clinical_recommendation: str
+    measurement_timestamp: Optional[str] = None
+    prediction_timestamp: str
+
+
+class CardiovascularRiskInput(BaseModel):
+    """Input payload for 365-day first-incident cardiovascular risk prediction."""
+    age_years: float = Field(..., ge=30.0, le=105.0, description="Patient age in years (adult cohort)")
+    sex: str = Field("Male", description="Biological sex: Male or Female")
+    systolic_bp: float = Field(128.0, ge=70.0, le=250.0, description="Systolic blood pressure in mmHg")
+    diastolic_bp: float = Field(82.0, ge=40.0, le=160.0, description="Diastolic blood pressure in mmHg")
+    pulse_pressure: Optional[float] = Field(None, description="Pulse pressure (SBP - DBP)")
+    heart_rate: Optional[float] = Field(72.0, ge=40.0, le=200.0)
+    respiratory_rate: Optional[float] = Field(16.0, ge=8.0, le=45.0)
+    oxygen_saturation: Optional[float] = Field(98.0, ge=70.0, le=100.0)
+    total_cholesterol: float = Field(195.0, ge=80.0, le=450.0, description="Total serum cholesterol in mg/dL")
+    ldl_cholesterol: float = Field(118.0, ge=30.0, le=300.0, description="LDL cholesterol in mg/dL")
+    hdl_cholesterol: float = Field(48.0, ge=15.0, le=150.0, description="HDL cholesterol in mg/dL")
+    triglycerides: float = Field(145.0, ge=30.0, le=800.0, description="Triglycerides in mg/dL")
+    fasting_glucose: float = Field(102.0, ge=50.0, le=400.0, description="Fasting blood glucose in mg/dL")
+    hba1c: float = Field(6.0, ge=3.5, le=16.0, description="HbA1c level in %")
+    bmi: float = Field(27.5, ge=12.0, le=65.0, description="Body Mass Index")
+    smoking_status: str = Field("non_smoker", description="Smoking history: non_smoker, former_smoker, current_smoker")
+    hypertension_status: int = Field(0, description="Hypertension diagnosis: 0 or 1")
+    hypertension_duration_years: float = Field(0.0, ge=0.0, description="Years with diagnosed hypertension")
+    diabetes_status: int = Field(0, description="Diabetes diagnosis: 0 or 1")
+    diabetes_duration_years: float = Field(0.0, ge=0.0, description="Years with diagnosed diabetes")
+    dyslipidemia_status: int = Field(0, description="Dyslipidemia diagnosis: 0 or 1")
+    chronic_kidney_disease_status: int = Field(0, description="CKD diagnosis: 0 or 1")
+    heart_failure_status: int = Field(0, description="Heart failure diagnosis: 0 or 1")
+    medication_statin: int = Field(0, description="Currently taking statin lipid-lowering medication: 0 or 1")
+    medication_antihypertensive: int = Field(0, description="Currently taking blood pressure medication: 0 or 1")
+    medication_antiplatelet: int = Field(0, description="Currently taking aspirin/clopidogrel: 0 or 1")
+    medication_antidiabetic: int = Field(0, description="Currently taking antidiabetic medication: 0 or 1")
+    serum_creatinine: float = Field(0.95, ge=0.2, le=12.0, description="Serum creatinine in mg/dL")
+    egfr: float = Field(88.0, ge=5.0, le=150.0, description="eGFR in mL/min/1.73m2")
+    cumulative_cvd_risk_burden: Optional[float] = Field(None, description="Composite co-morbidity score")
+
+
+class CardiovascularRiskOutput(BaseModel):
+    """Prediction outcome for 365-day incident cardiovascular event risk."""
+    cv_event_prediction: int = Field(..., description="Screening outcome: 0 (Below Triage Threshold) or 1 (Elevated Risk)")
+    estimated_1y_event_probability: float = Field(..., description="Estimated statistical probability of acute MI/stroke in 1 year")
+    risk_level: str = Field(..., description="Clinical risk tier: Low, Moderate, or High Incident CV Risk")
+    screening_threshold: float = 0.0403
+    screening_sensitivity: str = "83.33%"
+    model_name: str = "CuraTwin-BalancedRF-CardiovascularRisk-v1"
+    top_risk_factors: List[Dict[str, Any]] = []
+    clinical_action_plan: str
+    prediction_timestamp: str

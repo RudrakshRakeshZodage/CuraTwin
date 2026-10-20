@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CuraTwin — AI-Assisted Diabetes Monitoring &amp; Digital Twin Dashboard</title>
-  <meta name="description" content="AI-assisted diabetes monitoring and patient digital twin prototype combining manual clinical inputs with wearable sensor telemetry." />
+  <title>CuraTwin — Smart Health &amp; Blood Sugar Monitoring Dashboard</title>
+  <meta name="description" content="Personal health and diabetes monitoring dashboard combining continuous wearable sensors with real-time health forecasting." />
   
   <!-- Modern Healthcare Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,7 +26,7 @@
         </div>
         <div>
           <h1 class="brand-title">CuraTwin</h1>
-          <p class="brand-subtitle">AI-Assisted Diabetes Monitoring &amp; Digital Twin Dashboard</p>
+          <p class="brand-subtitle">Smart Health &amp; Blood Sugar Monitoring Dashboard</p>
         </div>
       </div>
 
@@ -39,7 +39,7 @@
           </a>
           <button type="button" id="btn-header-food-scan" class="btn-header-action btn-scan-highlight">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <span>Scan Food (AI)</span>
+            <span>Scan Food</span>
           </button>
           <button type="button" id="btn-header-daily-checkin" class="btn-header-action btn-checkin-highlight">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -50,7 +50,7 @@
         <!-- Backend Connection Status Indicator -->
         <div id="backend-status-badge" class="status-badge status-checking" role="status" aria-live="polite">
           <span class="status-dot"></span>
-          <span id="backend-status-text" class="status-label">Checking Backend...</span>
+          <span id="backend-status-text" class="status-label">Checking System...</span>
         </div>
       </div>
     </div>
@@ -65,8 +65,8 @@
         <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <div>
-        <strong>Research &amp; Educational Prototype:</strong>
-        CuraTwin integrates empirical machine learning with clinical and simulated wearable streams. This dashboard does NOT provide medical diagnosis, clinical counsel, or emergency triage. Always consult a qualified physician.
+        <strong>Health Companion Notice:</strong>
+        CuraTwin is designed to help you track everyday blood sugar trends and cardiovascular health factors. This dashboard is for wellness monitoring and does NOT replace medical diagnosis or emergency care. Always consult your doctor.
       </div>
     </div>
   </div>
@@ -79,35 +79,31 @@
       <section class="card form-card" aria-labelledby="form-heading">
         <div class="card-header">
           <div>
-            <h2 id="form-heading" class="card-title">Patient Biomarker &amp; Telemetry Stream</h2>
-            <p class="card-subtitle">Select input modality to evaluate machine learning classification.</p>
+            <h2 id="form-heading" class="card-title">Health Risk Assessment</h2>
+            <p class="card-subtitle">Track your real-time blood sugar trends and check your heart health.</p>
           </div>
         </div>
 
-        <!-- Mode Selector: Manual Clinical Input vs Watch / Sensor Input -->
-        <div class="mode-tabs-container" role="tablist" aria-label="Data Input Mode">
-          <button type="button" id="tab-mode-manual" class="mode-tab active" role="tab" aria-selected="true" aria-controls="view-mode-manual">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            <span>Manual Input</span>
-          </button>
-          <button type="button" id="tab-mode-sensor" class="mode-tab" role="tab" aria-selected="false" aria-controls="view-mode-sensor">
+        <!-- Mode Selector: Blood Sugar vs Heart Health -->
+        <div class="mode-tabs-container" role="tablist" aria-label="Health Check Options">
+          <button type="button" id="tab-mode-sensor" class="mode-tab active" role="tab" aria-selected="true" aria-controls="view-mode-sensor">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="7" />
               <polyline points="12 9 12 12 13.5 13.5" />
               <path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83" />
             </svg>
-            <span>Watch / Sensor Input</span>
-            <span id="sensor-tab-live-badge" class="tab-live-badge" hidden>LIVE</span>
+            <span>Blood Sugar Monitor</span>
+            <span id="sensor-tab-live-badge" class="tab-live-badge" hidden>Live</span>
+          </button>
+          <button type="button" id="tab-mode-cv" class="mode-tab" role="tab" aria-selected="false" aria-controls="view-mode-cv">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span>Heart &amp; Stroke Risk</span>
           </button>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- MODE A: MANUAL CLINICAL INPUT (Existing Form Completely Preserved) -->
-        <!-- ================================================================= -->
-        <div id="view-mode-manual" class="mode-view active" role="tabpanel" aria-labelledby="tab-mode-manual">
+        <div id="view-mode-manual" class="mode-view" role="tabpanel" aria-labelledby="tab-mode-manual" hidden>
           
           <!-- Quick Profile Presets -->
           <div class="preset-bar">
@@ -286,10 +282,20 @@
         </div>
 
         <!-- ================================================================= -->
-        <!-- MODE B: WATCH / SENSOR STREAMING PANEL -->
+        <!-- MODEL A: WATCH / SENSOR STREAMING PANEL                           -->
         <!-- ================================================================= -->
-        <div id="view-mode-sensor" class="mode-view" role="tabpanel" aria-labelledby="tab-mode-sensor" hidden>
+        <div id="view-mode-sensor" class="mode-view active" role="tabpanel" aria-labelledby="tab-mode-sensor">
           
+          <!-- Quick Examples -->
+          <div class="preset-bar">
+            <span class="preset-label">Quick Scenarios:</span>
+            <div class="preset-buttons">
+              <button type="button" id="btn-glucose-preset-low" class="btn-pill" title="Healthy fasting blood sugar">Normal / Fasting</button>
+              <button type="button" id="btn-glucose-preset-mod" class="btn-pill" title="After a light meal">Light Snack</button>
+              <button type="button" id="btn-glucose-preset-high" class="btn-pill" title="After a high-carb meal">After Heavy Meal</button>
+            </div>
+          </div>
+
           <!-- Device Header & Connection Status -->
           <div class="sensor-header-bar">
             <div class="sensor-device-info">
@@ -302,10 +308,10 @@
               </div>
               <div>
                 <div class="device-name-row">
-                  <span class="device-title" id="sensor-device-name">CuraWatch-B12</span>
-                  <span class="device-protocol-tag">Simulated CGM &amp; BLE Telemetry</span>
+                  <span class="device-title" id="sensor-device-name">Smartwatch &amp; CGM Monitor</span>
+                  <span class="device-protocol-tag">Live Sensor Sync</span>
                 </div>
-                <div class="device-subtitle">Real-Time Physiological Biomarker Stream Adapter</div>
+                <div class="device-subtitle">Real-Time Blood Sugar &amp; Activity Tracking</div>
               </div>
             </div>
 
@@ -316,7 +322,7 @@
             </div>
           </div>
 
-          <!-- Educational Hardware Notice -->
+          <!-- Sensor Notice -->
           <div class="sensor-notice-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
@@ -324,7 +330,7 @@
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <div>
-              <strong>Simulated Sensor Stream:</strong> Consumer smartwatches do not measure blood glucose natively. This demonstration couples an emulated Continuous Glucose Monitor (CGM) with smartwatch PPG vitals via our clean <code>SensorAdapter</code> interface.
+              <strong>Live Sensor Connection:</strong> Connect your continuous glucose monitor (CGM) or smartwatch to monitor live trends and predict post-meal sugar spikes in advance.
             </div>
           </div>
 
@@ -467,13 +473,13 @@
             </div>
           </div>
 
-          <!-- Linked Patient Clinical Profile (ML Requirement) -->
+          <!-- Linked Patient Baseline Profile -->
           <div class="linked-profile-card">
             <div class="linked-profile-header">
               <div>
-                <h4 class="linked-profile-title">Linked Patient Baseline Profile</h4>
+                <h4 class="linked-profile-title">Personal Baseline Health Profile</h4>
                 <p class="linked-profile-desc">
-                  The trained ML model requires 8 clinical biomarkers. Sensor streams update blood glucose; baseline demographic features are supplied by this profile.
+                  Live sensor streams continuously update your glucose and vitals, while personal health details are supplied by this profile.
                 </p>
               </div>
               <button type="button" id="btn-sync-profile-from-form" class="btn-ghost btn-sm" title="Sync current manual form values into linked profile">
@@ -502,7 +508,7 @@
               <label class="policy-toggle">
                 <input type="checkbox" id="chk-auto-predict-stream" checked />
                 <span class="policy-label">
-                  <strong>Live Prediction Policy:</strong> Auto-evaluate model when new glucose arrives (throttled to 10s)
+                  <strong>Automatic Monitoring:</strong> Check sugar spike risk automatically when new readings arrive
                 </span>
               </label>
             </div>
@@ -510,7 +516,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
-              <span>Predict with Latest Reading</span>
+              <span>Predict 2-Hour Sugar Spike</span>
             </button>
           </div>
 
@@ -540,14 +546,204 @@
 
         </div>
 
+        <!-- ================================================================= -->
+        <!-- HEART & STROKE RISK SECTION                                       -->
+        <!-- ================================================================= -->
+        <div id="view-mode-cv" class="mode-view" role="tabpanel" aria-labelledby="tab-mode-cv" hidden>
+          <div class="preset-bar">
+            <span class="preset-label">Example Profiles:</span>
+            <div class="preset-buttons">
+              <button type="button" id="btn-cv-preset-low" class="btn-pill" title="Healthy adult profile">Healthy Adult</button>
+              <button type="button" id="btn-cv-preset-mod" class="btn-pill" title="Borderline blood pressure and cholesterol">Moderate Risk</button>
+              <button type="button" id="btn-cv-preset-high" class="btn-pill" title="Elevated blood pressure and metabolic risk">High Risk Profile</button>
+            </div>
+          </div>
+
+          <form id="cv-risk-form" novalidate>
+            <div class="form-grid">
+              
+              <!-- Age -->
+              <div class="form-group">
+                <label for="cv-age" class="field-label">Age <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-age" name="cv_age" class="form-control" min="30" max="100" step="1" value="54" required />
+                  <span class="input-addon">years</span>
+                </div>
+                <span class="field-hint">Adult cohort (30–100 years)</span>
+              </div>
+
+              <!-- Biological Sex -->
+              <div class="form-group">
+                <label for="cv-sex" class="field-label">Biological Sex <span class="required">*</span></label>
+                <select id="cv-sex" name="cv_sex" class="form-control" required>
+                  <option value="Male" selected>Male</option>
+                  <option value="Female">Female</option>
+                </select>
+                <span class="field-hint">Baseline demographic weighting</span>
+              </div>
+
+              <!-- Systolic BP -->
+              <div class="form-group">
+                <label for="cv-sbp" class="field-label">Systolic BP (SBP) <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-sbp" name="cv_sbp" class="form-control" min="70" max="250" step="1" value="132" required />
+                  <span class="input-addon">mmHg</span>
+                </div>
+                <span class="field-hint">Target: &lt;120 | Elevated: 120–129 | Stage 1: &ge;130</span>
+              </div>
+
+              <!-- Diastolic BP -->
+              <div class="form-group">
+                <label for="cv-dbp" class="field-label">Diastolic BP (DBP) <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-dbp" name="cv_dbp" class="form-control" min="40" max="150" step="1" value="84" required />
+                  <span class="input-addon">mmHg</span>
+                </div>
+                <span class="field-hint">Target: &lt;80 | Stage 1: 80–89 | Stage 2: &ge;90</span>
+              </div>
+
+              <!-- Total Cholesterol -->
+              <div class="form-group">
+                <label for="cv-tot-chol" class="field-label">Total Cholesterol <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-tot-chol" name="cv_tot_chol" class="form-control" min="80" max="450" step="1" value="198" required />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Desirable: &lt;200 | Borderline: 200–239 | High: &ge;240</span>
+              </div>
+
+              <!-- HDL Cholesterol -->
+              <div class="form-group">
+                <label for="cv-hdl" class="field-label">HDL Cholesterol <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-hdl" name="cv_hdl" class="form-control" min="15" max="150" step="1" value="48" required />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Protective: &ge;50 | Low (At Risk): &lt;40 mg/dL</span>
+              </div>
+
+              <!-- LDL Cholesterol -->
+              <div class="form-group">
+                <label for="cv-ldl" class="field-label">LDL Cholesterol <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-ldl" name="cv_ldl" class="form-control" min="30" max="300" step="1" value="118" required />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Optimal: &lt;100 | Near optimal: 100–129 | High: &ge;160</span>
+              </div>
+
+              <!-- Triglycerides -->
+              <div class="form-group">
+                <label for="cv-trig" class="field-label">Triglycerides <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-trig" name="cv_trig" class="form-control" min="30" max="800" step="1" value="145" required />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Normal: &lt;150 | Borderline high: 150–199 | High: &ge;200</span>
+              </div>
+
+              <!-- Fasting Blood Glucose -->
+              <div class="form-group">
+                <label for="cv-glucose" class="field-label">Fasting Blood Glucose <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-glucose" name="cv_glucose" class="form-control" min="50" max="400" step="1" value="108" required />
+                  <span class="input-addon">mg/dL</span>
+                </div>
+                <span class="field-hint">Normal: &lt;100 | Impaired: 100–125 | Diabetes: &ge;126</span>
+              </div>
+
+              <!-- HbA1c -->
+              <div class="form-group">
+                <label for="cv-hba1c" class="field-label">HbA1c Level <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-hba1c" name="cv_hba1c" class="form-control" min="3.5" max="16.0" step="0.1" value="6.2" required />
+                  <span class="input-addon">%</span>
+                </div>
+                <span class="field-hint">Normal: &lt;5.7% | Prediabetes: 5.7–6.4% | Diabetes: &ge;6.5%</span>
+              </div>
+
+              <!-- BMI -->
+              <div class="form-group">
+                <label for="cv-bmi" class="field-label">Body Mass Index (BMI) <span class="required">*</span></label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-bmi" name="cv_bmi" class="form-control" min="12.0" max="65.0" step="0.1" value="28.2" required />
+                  <span class="input-addon">kg/m²</span>
+                </div>
+                <span class="field-hint">Normal: 18.5–24.9 | Overweight: 25.0–29.9 | Obese: &ge;30.0</span>
+              </div>
+
+              <!-- Smoking Status -->
+              <div class="form-group">
+                <label for="cv-smoking" class="field-label">Smoking Status <span class="required">*</span></label>
+                <select id="cv-smoking" name="cv_smoking" class="form-control" required>
+                  <option value="non_smoker" selected>Non-smoker (Never)</option>
+                  <option value="former_smoker">Former smoker (Quit)</option>
+                  <option value="current_smoker">Current active smoker</option>
+                </select>
+                <span class="field-hint">Tobacco exposure vascular risk multiplier</span>
+              </div>
+
+              <!-- Hypertension History & Duration -->
+              <div class="form-group">
+                <label for="cv-htn-duration" class="field-label">Hypertension Duration</label>
+                <div class="input-with-addon">
+                  <input type="number" id="cv-htn-duration" name="cv_htn_duration" class="form-control" min="0" max="50" step="0.5" value="4.0" />
+                  <span class="input-addon">years</span>
+                </div>
+                <span class="field-hint">Years diagnosed with high blood pressure (0 if none)</span>
+              </div>
+
+              <!-- Statin Medication -->
+              <div class="form-group">
+                <label class="field-label">Active Statin Therapy</label>
+                <div class="toggle-group" role="radiogroup" aria-label="Statin Medication">
+                  <label class="toggle-option">
+                    <input type="radio" name="cv_statin" value="0" checked />
+                    <span class="toggle-pill">No (0)</span>
+                  </label>
+                  <label class="toggle-option">
+                    <input type="radio" name="cv_statin" value="1" />
+                    <span class="toggle-pill">Yes (1)</span>
+                  </label>
+                </div>
+                <span class="field-hint">Lipid-lowering HMG-CoA reductase inhibitor</span>
+              </div>
+
+            </div>
+
+            <!-- Action Controls -->
+            <div class="form-actions">
+              <button type="button" id="btn-reset-cv-form" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                Reset Form
+              </button>
+              <button type="submit" id="btn-submit-cv-predict" class="btn-primary btn-cv-accent">
+                <span class="btn-content-default">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  Calculate 1-Year Heart Risk
+                </span>
+                <span class="btn-content-loading" hidden>
+                  <span class="spinner"></span>
+                  Checking Risk Factors...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
       </section>
 
-      <!-- RIGHT COLUMN: Model Results, Inference Details & Provenance Card -->
+      <!-- RIGHT COLUMN: Health Assessment & Forecast Card -->
       <section class="card results-card" aria-labelledby="results-heading">
         <div class="card-header">
           <div>
-            <h2 id="results-heading" class="card-title">Inference &amp; Prediction Outcome</h2>
-            <p class="card-subtitle">Direct evaluation from the Python ML backend on Render.</p>
+            <h2 id="results-heading" class="card-title">Health Assessment &amp; Forecast</h2>
+            <p class="card-subtitle">Real-time health insights based on your readings.</p>
           </div>
         </div>
 
@@ -563,22 +759,22 @@
                   <path d="M9 21V9" />
                 </svg>
               </div>
-              <h3 class="empty-title">Awaiting Biomarker Inference</h3>
+              <h3 class="empty-title">Ready for Assessment</h3>
               <p class="empty-desc">
-                Provide patient clinical biomarkers via Manual Input, or start the Watch / Sensor Stream to evaluate live model predictions.
+                Start the live blood sugar monitor or complete the heart health form to view your personalized health forecast.
               </p>
               <div class="empty-checklist">
                 <div class="checklist-item">
                   <span class="check-bullet">&#10003;</span>
-                  <span>Evaluated by fitted scikit-learn <code>LogisticRegression</code></span>
+                  <span>Predicts 2-hour blood sugar spikes after meals</span>
                 </div>
                 <div class="checklist-item">
                   <span class="check-bullet">&#10003;</span>
-                  <span>Supports Manual Clinical Entry or Live Sensor Telemetry</span>
+                  <span>Evaluates 1-year cardiovascular and stroke risk</span>
                 </div>
                 <div class="checklist-item">
                   <span class="check-bullet">&#10003;</span>
-                  <span>Strict measurement vs prediction timestamp differentiation</span>
+                  <span>Syncs with continuous smartwatch and CGM sensors</span>
                 </div>
               </div>
             </div>
@@ -588,8 +784,8 @@
           <div id="state-loading" class="result-state" hidden>
             <div class="loading-state">
               <div class="pulse-ring"></div>
-              <h3 class="loading-title">Communicating with Backend...</h3>
-              <p id="loading-stage-text" class="loading-desc">Sending REST payload to Render FastAPI server...</p>
+              <h3 class="loading-title">Analyzing Health Data...</h3>
+              <p id="loading-stage-text" class="loading-desc">Calculating your personalized risk forecast...</p>
               <div class="skeleton-card">
                 <div class="skeleton-line full"></div>
                 <div class="skeleton-line half"></div>
@@ -611,10 +807,10 @@
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   <div>
-                    <span id="stale-notice-text">A newer sensor reading has arrived. This outcome reflects previous biomarkers.</span>
+                    <span id="stale-notice-text">A newer reading has arrived. Click below to refresh your forecast.</span>
                   </div>
                 </div>
-                <button type="button" id="btn-re-evaluate-stale" class="btn-mini-reevaluate">Re-evaluate</button>
+                <button type="button" id="btn-re-evaluate-stale" class="btn-mini-reevaluate">Refresh</button>
               </div>
 
               <!-- Classification Badge & Label -->
@@ -626,37 +822,37 @@
                 </div>
                 <div>
                   <div class="outcome-header-row">
-                    <span class="outcome-tag">Model Classification</span>
-                    <span id="result-source-badge" class="badge-source">Manual Input</span>
+                    <span class="outcome-tag">Assessment</span>
+                    <span id="result-source-badge" class="badge-source">Blood Sugar Monitor</span>
                   </div>
-                  <h3 id="outcome-label" class="outcome-title">Negative model classification</h3>
+                  <h3 id="outcome-label" class="outcome-title">Normal Blood Sugar Expected</h3>
                 </div>
               </div>
 
               <!-- Probability Gauge & Metric Display -->
               <div class="metric-card" id="probability-block">
                 <div class="metric-header">
-                  <span class="metric-label">Model Statistical Probability (Class 1)</span>
+                  <span class="metric-label">Estimated Risk Score</span>
                   <span id="metric-probability-val" class="metric-value">4.72%</span>
                 </div>
                 <div class="gauge-bar-track">
                   <div id="gauge-bar-fill" class="gauge-bar-fill" style="width: 4.72%;"></div>
                 </div>
                 <div class="gauge-scale">
-                  <span>0% (Low likelihood)</span>
-                  <span>50% Threshold</span>
-                  <span>100% (High likelihood)</span>
+                  <span>0% (Low Risk)</span>
+                  <span>50% (Moderate)</span>
+                  <span>100% (High Risk)</span>
                 </div>
                 <p id="probability-note" class="metric-explanation">
-                  Estimated probability output by the logistic regression sigmoid function.
+                  Estimated chance of experiencing elevated risk.
                 </p>
               </div>
 
               <!-- Input Features Echo / Audit Table -->
               <div class="audit-block">
                 <div class="audit-header-row">
-                  <h4 class="audit-title">Biomarker Feature Audit</h4>
-                  <span id="audit-device-id" class="audit-device-tag">Device: Local Form</span>
+                  <h4 class="audit-title">Measurement Summary</h4>
+                  <span id="audit-device-id" class="audit-device-tag">Blood Sugar Monitor</span>
                 </div>
                 <div class="summary-grid" id="audit-summary-grid">
                   <!-- Dynamically populated -->
@@ -666,19 +862,19 @@
               <!-- Dual Timestamps Provenance Footer -->
               <div class="provenance-footer">
                 <div class="prov-item">
-                  <span class="prov-k">Measurement Time:</span>
+                  <span class="prov-k">Recorded At:</span>
                   <span class="prov-v" id="prov-measurement-time">--:--:--</span>
                 </div>
                 <div class="prov-item">
-                  <span class="prov-k">Prediction Time:</span>
+                  <span class="prov-k">Forecast Generated:</span>
                   <span class="prov-v" id="prov-prediction-time">--:--:--</span>
                 </div>
               </div>
 
               <!-- Model Metadata Footer -->
               <div class="result-meta">
-                <span>Model: <strong>LogisticRegression v1.0</strong></span>
-                <span id="meta-timestamp">Evaluated on Render</span>
+                <span>System: <strong>CuraTwin Health Twin</strong></span>
+                <span id="meta-timestamp">Active</span>
               </div>
             </div>
           </div>
@@ -738,7 +934,7 @@
             <div>
               <h2 id="timeline-heading" class="timeline-main-title">Digital Twin Daily Lifestyle &amp; Biomarker Timeline</h2>
               <p class="timeline-main-subtitle">
-                Unified chronological timeline combining Meals, Physical Activity, Sleep, Medication adherence, Continuous Glucose readings, Symptoms, and ML Model predictions.
+                Unified chronological timeline combining Meals, Physical Activity, Sleep, Medication adherence, Continuous Glucose readings, Symptoms, and Health Forecasts.
               </p>
             </div>
           </div>
@@ -758,7 +954,7 @@
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
-            <span>Scan Food Photo (AI)</span>
+            <span>Scan Food Photo</span>
           </button>
           <button type="button" id="btn-reset-timeline" class="btn-ghost btn-sm" title="Reset timeline to default clinical demo day">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -912,7 +1108,7 @@
               <h4 class="question-text">What did you eat recently?</h4>
               <button type="button" id="btn-checkin-scan-meal" class="btn-pill-action">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <span>📸 Scan Food Photo with AI</span>
+                <span>📸 Scan Food Photo</span>
               </button>
             </div>
           </div>
@@ -1012,9 +1208,9 @@
     <div class="curatwin-modal-card scanner-modal-width">
       <div class="modal-card-header">
         <div class="modal-header-text">
-          <span class="modal-badge badge-scan">AI Vision &amp; Telemetry</span>
-          <h3 id="scanner-modal-title" class="modal-title">AI Food Nutrition &amp; Calorie Scanner</h3>
-          <p class="modal-subtitle">Upload or select a food photo to automatically estimate calories, protein, carbohydrates, fats, and glycemic index.</p>
+          <span class="modal-badge badge-scan">Nutrition &amp; Calories</span>
+          <h3 id="scanner-modal-title" class="modal-title">Food Nutrition &amp; Calorie Scanner</h3>
+          <p class="modal-subtitle">Upload or select a food photo to estimate calories, protein, carbohydrates, fats, and glycemic index.</p>
         </div>
         <button type="button" id="btn-close-scanner-modal" class="modal-close-btn" aria-label="Close food scanner modal">&times;</button>
       </div>
@@ -1039,7 +1235,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <span>Analyze with AI</span>
+              <span>Analyze Meal</span>
             </button>
           </div>
         </div>
@@ -1102,26 +1298,26 @@
     </div>
   </div>
 
-  <!-- Technical Information Section -->
+  <!-- Information Section -->
   <section class="info-section">
     <div class="info-container">
       <div class="info-grid">
         <div class="info-card">
-          <h4 class="info-heading">Fitted ML Architecture</h4>
+          <h4 class="info-heading">Blood Sugar Forecast</h4>
           <p class="info-text">
-            Trained on 100,000 patient records using scikit-learn <code>LogisticRegression(penalty='l2', max_iter=1000)</code>. Evaluates 15 one-hot encoded and continuous clinical features.
+            Forecasts potential blood sugar spikes over the next 2 hours based on your recent meals, physical activity, and continuous glucose readings so you can take timely action.
           </p>
         </div>
         <div class="info-card">
-          <h4 class="info-heading">Dual-Modality Cloud Pipeline</h4>
+          <h4 class="info-heading">Heart &amp; Stroke Risk Check</h4>
           <p class="info-text">
-            Combines manual clinical entry with real-time wearable sensor streaming via a decoupled <code>SensorAdapter</code>. All ML inference is executed strictly on the Python FastAPI backend.
+            Screens long-term cardiovascular health by analyzing blood pressure, cholesterol panels, and vital trends to help you prevent future heart events.
           </p>
         </div>
         <div class="info-card">
-          <h4 class="info-heading">Medical Limitations</h4>
+          <h4 class="info-heading">Personalized Digital Twin</h4>
           <p class="info-text">
-            Probability output reflects uncalibrated logistic sigmoid scores. Not a diagnostic tool or clinical risk calculator. Intended solely for machine learning research.
+            Combines daily lifestyle logs, continuous wearables, and clinical history into a holistic digital health twin designed to support proactive patient wellness.
           </p>
         </div>
       </div>
@@ -1131,8 +1327,8 @@
   <!-- App Footer -->
   <footer class="app-footer">
     <div class="footer-container">
-      <p>&copy; 2026 CuraTwin Research. Engineered with Python, FastAPI, scikit-learn, and Vanilla Web Technologies.</p>
-      <p class="footer-disclaimer">Strictly for educational and research demonstration purposes.</p>
+      <p>&copy; 2026 CuraTwin. Smart Diabetes &amp; Cardiovascular Health Monitoring.</p>
+      <p class="footer-disclaimer">Designed for patient wellness and health tracking demonstration.</p>
     </div>
   </footer>
 

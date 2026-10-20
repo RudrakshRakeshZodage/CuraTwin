@@ -32,13 +32,12 @@ As required by the project evaluation criteria, all mandatory items are comprehe
 
 ## 1. Team Details
 
-| Name |Contact / GitHub |
+| Name | Contact / GitHub |
 |---|---|
 | **Srushti Kashinath Shinde** | [@SrushtiShinde](https://github.com/srushtikshinde95) |
 | **Sumedha Murkute** | [@SumedhaMurkute](https://github.com/sumedha-murkute22) |
 | **Rudraksh Rakesh Zodage** | [@RudrakshZodage](https://github.com/RudrakshRakeshZodage) |
 | **Kavyya Ganesh Patil** | [@KavyyaPatil](https://github.com/TechnoDemon22) |
-
 
 ---
 

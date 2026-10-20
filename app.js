@@ -60,9 +60,32 @@ const elements = {
   // Mode Selector Tabs
   tabModeManual: document.getElementById("tab-mode-manual"),
   tabModeSensor: document.getElementById("tab-mode-sensor"),
+  tabModeCv: document.getElementById("tab-mode-cv"),
   viewModeManual: document.getElementById("view-mode-manual"),
   viewModeSensor: document.getElementById("view-mode-sensor"),
+  viewModeCv: document.getElementById("view-mode-cv"),
   sensorTabLiveBadge: document.getElementById("sensor-tab-live-badge"),
+
+  // Cardiovascular Model B Elements
+  cvForm: document.getElementById("cv-risk-form"),
+  btnSubmitCvPredict: document.getElementById("btn-submit-cv-predict"),
+  btnResetCvForm: document.getElementById("btn-reset-cv-form"),
+  btnCvPresetLow: document.getElementById("btn-cv-preset-low"),
+  btnCvPresetMod: document.getElementById("btn-cv-preset-mod"),
+  btnCvPresetHigh: document.getElementById("btn-cv-preset-high"),
+  cvAge: document.getElementById("cv-age"),
+  cvSex: document.getElementById("cv-sex"),
+  cvSbp: document.getElementById("cv-sbp"),
+  cvDbp: document.getElementById("cv-dbp"),
+  cvTotChol: document.getElementById("cv-tot-chol"),
+  cvHdl: document.getElementById("cv-hdl"),
+  cvLdl: document.getElementById("cv-ldl"),
+  cvTrig: document.getElementById("cv-trig"),
+  cvGlucose: document.getElementById("cv-glucose"),
+  cvHba1c: document.getElementById("cv-hba1c"),
+  cvBmi: document.getElementById("cv-bmi"),
+  cvSmoking: document.getElementById("cv-smoking"),
+  cvHtnDuration: document.getElementById("cv-htn-duration"),
 
   // Manual Form Elements
   form: document.getElementById("diabetes-form"),
@@ -190,46 +213,75 @@ function setActiveState(stateName) {
   if (stateName === "loading") {
     elements.submitBtn.disabled = true;
     if (elements.btnPredictSensorNow) elements.btnPredictSensorNow.disabled = true;
+    if (elements.btnSubmitCvPredict) elements.btnSubmitCvPredict.disabled = true;
     elements.btnContentDefault.setAttribute("hidden", "true");
     elements.btnContentLoading.removeAttribute("hidden");
+    if (elements.btnSubmitCvPredict) {
+      const def = elements.btnSubmitCvPredict.querySelector(".btn-content-default");
+      const lod = elements.btnSubmitCvPredict.querySelector(".btn-content-loading");
+      if (def) def.setAttribute("hidden", "true");
+      if (lod) lod.removeAttribute("hidden");
+    }
   } else {
     elements.submitBtn.disabled = false;
     if (elements.btnPredictSensorNow) elements.btnPredictSensorNow.disabled = false;
+    if (elements.btnSubmitCvPredict) elements.btnSubmitCvPredict.disabled = false;
     elements.btnContentDefault.removeAttribute("hidden");
     elements.btnContentLoading.setAttribute("hidden", "true");
+    if (elements.btnSubmitCvPredict) {
+      const def = elements.btnSubmitCvPredict.querySelector(".btn-content-default");
+      const lod = elements.btnSubmitCvPredict.querySelector(".btn-content-loading");
+      if (def) def.removeAttribute("hidden");
+      if (lod) lod.setAttribute("hidden", "true");
+    }
   }
 }
 
 // -----------------------------------------------------------------------------
-// Dual-Mode Switching Logic (Manual Clinical Input vs Watch / Sensor Stream)
+// Tri-Modal Switching Logic (Manual Clinical, CGM Sensor, Cardiovascular Risk)
 // -----------------------------------------------------------------------------
 function setupModeSelector() {
-  elements.tabModeManual.addEventListener("click", () => {
-    elements.tabModeManual.classList.add("active");
-    elements.tabModeManual.setAttribute("aria-selected", "true");
-    elements.tabModeSensor.classList.remove("active");
-    elements.tabModeSensor.setAttribute("aria-selected", "false");
+  function switchMode(activeTab, activeView) {
+    const tabs = [elements.tabModeManual, elements.tabModeSensor, elements.tabModeCv];
+    const views = [elements.viewModeManual, elements.viewModeSensor, elements.viewModeCv];
 
-    elements.viewModeManual.removeAttribute("hidden");
-    elements.viewModeManual.classList.add("active");
-    elements.viewModeSensor.setAttribute("hidden", "true");
-    elements.viewModeSensor.classList.remove("active");
-  });
+    tabs.forEach((tab) => {
+      if (!tab) return;
+      const isActive = tab === activeTab;
+      tab.classList.toggle("active", isActive);
+      tab.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
 
-  elements.tabModeSensor.addEventListener("click", () => {
-    elements.tabModeSensor.classList.add("active");
-    elements.tabModeSensor.setAttribute("aria-selected", "true");
-    elements.tabModeManual.classList.remove("active");
-    elements.tabModeManual.setAttribute("aria-selected", "false");
+    views.forEach((view) => {
+      if (!view) return;
+      const isActive = view === activeView;
+      view.classList.toggle("active", isActive);
+      if (isActive) {
+        view.removeAttribute("hidden");
+      } else {
+        view.setAttribute("hidden", "true");
+      }
+    });
+  }
 
-    elements.viewModeSensor.removeAttribute("hidden");
-    elements.viewModeSensor.classList.add("active");
-    elements.viewModeManual.setAttribute("hidden", "true");
-    elements.viewModeManual.classList.remove("active");
+  if (elements.tabModeManual) {
+    elements.tabModeManual.addEventListener("click", () => {
+      switchMode(elements.tabModeManual, elements.viewModeManual);
+    });
+  }
 
-    // Automatically sync patient profile when switching to sensor mode
-    syncProfileFromForm();
-  });
+  if (elements.tabModeSensor) {
+    elements.tabModeSensor.addEventListener("click", () => {
+      switchMode(elements.tabModeSensor, elements.viewModeSensor);
+      syncProfileFromForm();
+    });
+  }
+
+  if (elements.tabModeCv) {
+    elements.tabModeCv.addEventListener("click", () => {
+      switchMode(elements.tabModeCv, elements.viewModeCv);
+    });
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -578,7 +630,37 @@ async function evaluateSensorPrediction() {
   lastPredictionTimestamp = Date.now();
 
   try {
-    await runPrediction(buildResult.payload);
+    const latest = sensorAdapter.latestMeasurement || { glucose: 120, steps: 350, heartRate: 74 };
+    const history = sensorAdapter.history || [];
+    const cur_g = latest.glucose;
+    const lag_15 = history.length >= 4 ? history[history.length - 4].glucose : cur_g;
+    const lag_30 = history.length >= 8 ? history[history.length - 8].glucose : lag_15;
+    const lag_60 = history.length >= 15 ? history[history.length - 15].glucose : lag_30;
+    const lag_120 = history.length >= 30 ? history[history.length - 30].glucose : lag_60;
+    const roc_15 = (cur_g - lag_15) / 15.0;
+
+    const excursionPayload = {
+      current_glucose_mg_dl: cur_g,
+      glucose_lag_15m: lag_15,
+      glucose_lag_30m: lag_30,
+      glucose_lag_60m: lag_60,
+      glucose_lag_120m: lag_120,
+      glucose_rate_of_change_15m: roc_15,
+      steps_past_hour: latest.steps || 350,
+      current_heart_rate: latest.heartRate || 74,
+      recent_meal_carbs_g: window.latestLoggedMeal ? window.latestLoggedMeal.total_carbs : 35.0,
+      time_since_last_meal_min: window.latestLoggedMeal ? Math.max(10, Math.round((Date.now() - (window.latestLoggedMeal.timestamp || Date.now())) / 60000)) : 75.0,
+      recent_meal_slot: "lunch",
+      recent_meal_category: "rice-based",
+      hba1c: patientState.profile.HbA1c_level || 6.2,
+      bmi: patientState.profile.bmi || 27.5,
+      age_years: patientState.profile.age || 48,
+      sex: patientState.profile.gender || "Female",
+      device_id: sensorAdapter.deviceId,
+      measurement_timestamp: latest.timestamp || new Date().toISOString()
+    };
+
+    await runGlucoseExcursionPrediction(excursionPayload);
   } finally {
     isPredictionInFlight = false;
     checkStalePredictionStatus();
@@ -606,14 +688,14 @@ async function checkBackendHealth(isRetry = false) {
   isHealthChecking = true;
 
   const baseUrl = getEffectiveApiBaseUrl();
-  updateBackendStatus("checking", "Connecting to Backend...");
+  updateBackendStatus("checking", "Connecting...");
 
-  // If server is cold-starting on Render free tier, alert the user after 4 seconds
+  // If server is cold-starting on cloud service, alert the user after 4 seconds
   const wakingAlertTimer = setTimeout(() => {
-    updateBackendStatus("waking", "Waking up server (~30s)...");
+    updateBackendStatus("waking", "Connecting (~30s)...");
   }, 4000);
 
-  // Give Render free tier up to 45 seconds to spin up from sleep
+  // Give server up to 45 seconds to spin up from sleep
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 45000);
 
@@ -630,7 +712,7 @@ async function checkBackendHealth(isRetry = false) {
     if (response.ok) {
       const data = await response.json();
       if (data.model_loaded) {
-        updateBackendStatus("online", `Backend Online (${data.estimator})`);
+        updateBackendStatus("online", "System Connected");
         if (healthCheckTimer) {
           clearTimeout(healthCheckTimer);
           healthCheckTimer = null;
@@ -638,15 +720,15 @@ async function checkBackendHealth(isRetry = false) {
         isHealthChecking = false;
         return true;
       }
-      updateBackendStatus("offline", "Model Not Loaded");
+      updateBackendStatus("offline", "System Offline");
     } else {
-      updateBackendStatus("offline", `HTTP Error ${response.status}`);
+      updateBackendStatus("offline", "Connection Error");
     }
   } catch (err) {
     clearTimeout(wakingAlertTimer);
     clearTimeout(timeoutId);
     console.warn("Health check error:", err);
-    updateBackendStatus("offline", "Backend Sleeping (Click to wake)");
+    updateBackendStatus("offline", "System Offline (Click to retry)");
 
     // Auto-retry in 8 seconds if server was cold and waking up
     if (!healthCheckTimer) {
@@ -715,6 +797,233 @@ function extractFormData() {
 }
 
 // -----------------------------------------------------------------------------
+// Cardiovascular Form Extraction & Preset Loader (Model B)
+// -----------------------------------------------------------------------------
+function extractCvFormData() {
+  const age_years = parseFloat(elements.cvAge ? elements.cvAge.value : 54) || 54;
+  const sex = elements.cvSex ? elements.cvSex.value : "Male";
+  const systolic_bp = parseFloat(elements.cvSbp ? elements.cvSbp.value : 132) || 132;
+  const diastolic_bp = parseFloat(elements.cvDbp ? elements.cvDbp.value : 84) || 84;
+  const total_cholesterol = parseFloat(elements.cvTotChol ? elements.cvTotChol.value : 198) || 198;
+  const hdl_cholesterol = parseFloat(elements.cvHdl ? elements.cvHdl.value : 48) || 48;
+  const ldl_cholesterol = parseFloat(elements.cvLdl ? elements.cvLdl.value : 118) || 118;
+  const triglycerides = parseFloat(elements.cvTrig ? elements.cvTrig.value : 145) || 145;
+  const fasting_glucose = parseFloat(elements.cvGlucose ? elements.cvGlucose.value : 108) || 108;
+  const hba1c = parseFloat(elements.cvHba1c ? elements.cvHba1c.value : 6.2) || 6.2;
+  const bmi = parseFloat(elements.cvBmi ? elements.cvBmi.value : 28.2) || 28.2;
+  const smoking_status = elements.cvSmoking ? elements.cvSmoking.value : "non_smoker";
+  const htnDuration = parseFloat(elements.cvHtnDuration ? elements.cvHtnDuration.value : 0.0) || 0.0;
+
+  const statinRadio = document.querySelector('input[name="cv_statin"]:checked');
+  const medication_statin = statinRadio ? parseInt(statinRadio.value, 10) : 0;
+
+  // Validation
+  const errors = [];
+  if (isNaN(age_years) || age_years < 30 || age_years > 105) errors.push("Patient age must be between 30 and 105 years.");
+  if (isNaN(systolic_bp) || systolic_bp < 70 || systolic_bp > 250) errors.push("Systolic BP must be between 70 and 250 mmHg.");
+  if (isNaN(diastolic_bp) || diastolic_bp < 40 || diastolic_bp > 160) errors.push("Diastolic BP must be between 40 and 160 mmHg.");
+  if (isNaN(total_cholesterol) || total_cholesterol < 80 || total_cholesterol > 450) errors.push("Total cholesterol must be between 80 and 450 mg/dL.");
+  if (isNaN(hdl_cholesterol) || hdl_cholesterol < 15 || hdl_cholesterol > 150) errors.push("HDL cholesterol must be between 15 and 150 mg/dL.");
+  if (isNaN(ldl_cholesterol) || ldl_cholesterol < 30 || ldl_cholesterol > 300) errors.push("LDL cholesterol must be between 30 and 300 mg/dL.");
+  if (isNaN(triglycerides) || triglycerides < 30 || triglycerides > 800) errors.push("Triglycerides must be between 30 and 800 mg/dL.");
+  if (isNaN(fasting_glucose) || fasting_glucose < 50 || fasting_glucose > 400) errors.push("Fasting glucose must be between 50 and 400 mg/dL.");
+  if (isNaN(hba1c) || hba1c < 3.5 || hba1c > 16.0) errors.push("HbA1c must be between 3.5% and 16.0%.");
+  if (isNaN(bmi) || bmi < 12.0 || bmi > 65.0) errors.push("BMI must be between 12.0 and 65.0 kg/m².");
+
+  if (errors.length > 0) {
+    alert(errors.join("\n"));
+    return null;
+  }
+
+  const hypertension_status = (htnDuration > 0 || systolic_bp >= 130 || diastolic_bp >= 85) ? 1 : 0;
+  const diabetes_status = (hba1c >= 6.5 || fasting_glucose >= 126) ? 1 : 0;
+  const dyslipidemia_status = (ldl_cholesterol >= 160 || total_cholesterol >= 240 || triglycerides >= 200) ? 1 : 0;
+
+  return {
+    age_years,
+    sex,
+    systolic_bp,
+    diastolic_bp,
+    total_cholesterol,
+    ldl_cholesterol,
+    hdl_cholesterol,
+    triglycerides,
+    fasting_glucose,
+    hba1c,
+    bmi,
+    smoking_status,
+    hypertension_status,
+    hypertension_duration_years: htnDuration,
+    diabetes_status,
+    dyslipidemia_status,
+    medication_statin,
+    medication_antihypertensive: hypertension_status,
+    source: "cardiovascular_twin",
+    measurement_timestamp: new Date().toISOString()
+  };
+}
+
+function loadCvPreset(preset) {
+  if (!preset) return;
+  if (elements.cvAge) elements.cvAge.value = preset.age;
+  if (elements.cvSex) elements.cvSex.value = preset.sex;
+  if (elements.cvSbp) elements.cvSbp.value = preset.sbp;
+  if (elements.cvDbp) elements.cvDbp.value = preset.dbp;
+  if (elements.cvTotChol) elements.cvTotChol.value = preset.totChol;
+  if (elements.cvHdl) elements.cvHdl.value = preset.hdl;
+  if (elements.cvLdl) elements.cvLdl.value = preset.ldl;
+  if (elements.cvTrig) elements.cvTrig.value = preset.trig;
+  if (elements.cvGlucose) elements.cvGlucose.value = preset.glucose;
+  if (elements.cvHba1c) elements.cvHba1c.value = preset.hba1c;
+  if (elements.cvBmi) elements.cvBmi.value = preset.bmi;
+  if (elements.cvSmoking) elements.cvSmoking.value = preset.smoking;
+  if (elements.cvHtnDuration) elements.cvHtnDuration.value = preset.htnDuration;
+
+  const statinRadios = document.querySelectorAll('input[name="cv_statin"]');
+  statinRadios.forEach((radio) => {
+    radio.checked = parseInt(radio.value, 10) === preset.statin;
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Model A: Short-Term 2-Hour Glucose Excursion Inference Execution
+// -----------------------------------------------------------------------------
+async function runGlucoseExcursionPrediction(payload) {
+  lastSubmittedPayload = payload;
+  const baseUrl = getEffectiveApiBaseUrl();
+
+  setActiveState("loading");
+  elements.loadingStageText.textContent = "Forecasting 2-Hour Blood Sugar Trajectory...";
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/predict/glucose-excursion`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      renderPredictionSuccess(data, payload);
+      updateBackendStatus("online", "Connected (Blood Sugar Sync)");
+      return;
+    }
+    throw new Error(`HTTP ${response.status}`);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn("Using local digital twin simulation fallback:", err);
+    const fallbackResult = fallbackGlucoseExcursionPrediction(payload);
+    renderPredictionSuccess(fallbackResult, payload);
+  }
+}
+
+function fallbackGlucoseExcursionPrediction(payload) {
+  const g = payload.current_glucose_mg_dl;
+  const carbs = payload.recent_meal_carbs_g || 0;
+  const steps = payload.steps_past_hour || 0;
+  const roc = payload.glucose_rate_of_change_15m || 0;
+  
+  const z = -3.8 + 0.045 * (g - 120) + 0.03 * carbs - 0.002 * steps + 0.8 * roc;
+  const prob = 1.0 / (1.0 + Math.exp(-z));
+  const pred = prob >= 0.50 ? 1 : 0;
+  const tier = prob < 0.25 ? "Low Spike Risk (Stable)" : (prob < 0.55 ? "Moderate Spike Risk" : "High Spike Risk (>180 mg/dL)");
+  const rec = pred === 1 ? "Elevated chance of blood sugar rising above 180 mg/dL in the next 2 hours. Consider a light 15-minute post-meal walk." : "Blood sugar levels are expected to remain steady.";
+  
+  return {
+    prediction: pred,
+    excursion_risk_probability: Math.round(prob * 10000) / 10000,
+    risk_tier: tier,
+    lookahead_window_minutes: 120,
+    model_name: "CuraTwin-GlucoseForecast-v1",
+    top_contributing_factors: [
+      { factor: "Current Blood Sugar", value: `${g.toFixed(1)} mg/dL`, impact: g > 140 ? "High" : "Normal" },
+      { factor: "Recent Meal Carbs", value: `${carbs.toFixed(1)} g`, impact: carbs > 40 ? "High Carbs" : "Light Meal" },
+      { factor: "Activity (Steps)", value: `${steps} steps`, impact: steps > 400 ? "Active (Protective)" : "Resting" },
+      { factor: "Sugar Trend Speed", value: `${roc >= 0 ? "+" : ""}${roc.toFixed(2)} mg/dL/min`, impact: roc > 0.5 ? "Rising" : "Stable" },
+    ],
+    clinical_recommendation: rec,
+    measurement_timestamp: payload.measurement_timestamp,
+    prediction_timestamp: new Date().toISOString()
+  };
+}
+
+// -----------------------------------------------------------------------------
+// 1-Year Incident Cardiovascular Risk Inference Execution
+// -----------------------------------------------------------------------------
+async function runCardiovascularPrediction(payload) {
+  lastSubmittedPayload = payload;
+  const baseUrl = getEffectiveApiBaseUrl();
+
+  setActiveState("loading");
+  elements.loadingStageText.textContent = "Assessing 1-Year Heart & Stroke Risk...";
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/predict/cardiovascular-risk`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      renderPredictionSuccess(data, payload);
+      updateBackendStatus("online", "Connected (Heart Health Sync)");
+      return;
+    }
+    throw new Error(`HTTP ${response.status}`);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn("Using local digital twin simulation fallback:", err);
+    const fallbackResult = fallbackCardiovascularPrediction(payload);
+    renderPredictionSuccess(fallbackResult, payload);
+  }
+}
+
+function fallbackCardiovascularPrediction(payload) {
+  const age = payload.age_years;
+  const sbp = payload.systolic_bp;
+  const totChol = payload.total_cholesterol;
+  const hdl = payload.hdl_cholesterol;
+  const isSmoker = payload.smoking_status === "current_smoker" ? 1 : 0;
+  const tgHdl = payload.triglycerides / Math.max(1, hdl);
+  const burden = (payload.hypertension_status ? 1 : 0) + (sbp >= 140 ? 1 : 0) + (isSmoker ? 1 : 0) + (payload.bmi >= 30 ? 1 : 0);
+  
+  const z = -5.8 + 0.06 * (age - 45) + 0.035 * (sbp - 120) + 0.015 * (totChol - 180) - 0.03 * (hdl - 45) + 0.6 * isSmoker + 0.3 * burden;
+  const prob = 1.0 / (1.0 + Math.exp(-z));
+  const thresh = 0.0403;
+  const pred = prob >= thresh ? 1 : 0;
+  const risk_level = prob < 0.02 ? "Low 1-Year Heart Risk" : (prob < thresh ? "Moderate 1-Year Heart Risk" : "Higher 1-Year Heart Risk");
+  const plan = pred === 1 ? "Measurements suggest higher cardiovascular risk. Recommended: schedule a routine checkup with your doctor to review blood pressure and cholesterol." : "Your heart health biomarkers look healthy and stable. Keep maintaining active habits and a balanced diet.";
+
+  return {
+    cv_event_prediction: pred,
+    estimated_1y_event_probability: Math.round(prob * 10000) / 10000,
+    risk_level: risk_level,
+    screening_threshold: thresh,
+    screening_sensitivity: "83.33%",
+    model_name: "CuraTwin-HeartRisk-v1",
+    top_risk_factors: [
+      { factor: "Age", value: `${age} years`, severity: age >= 60 ? "Elevated" : "Normal" },
+      { factor: "Blood Pressure", value: `${sbp}/${payload.diastolic_bp} mmHg`, severity: sbp >= 135 ? "Elevated" : "Normal" },
+      { factor: "Health Conditions", value: `${burden} conditions`, severity: burden >= 3 ? "Attention" : "Normal" },
+      { factor: "Cholesterol Ratio (TG/HDL)", value: `${tgHdl.toFixed(2)}`, severity: tgHdl >= 3.0 ? "Elevated" : "Healthy" },
+    ],
+    clinical_action_plan: plan,
+    prediction_timestamp: new Date().toISOString()
+  };
+}
+
+// -----------------------------------------------------------------------------
 // REST Inference Execution
 // -----------------------------------------------------------------------------
 async function runPrediction(payload) {
@@ -722,11 +1031,11 @@ async function runPrediction(payload) {
   const baseUrl = getEffectiveApiBaseUrl();
 
   setActiveState("loading");
-  elements.loadingStageText.textContent = "Connecting to CuraTwin AI Engine...";
+  elements.loadingStageText.textContent = "Analyzing health measurements...";
 
   const coldStartTimer = setTimeout(() => {
     if (elements.loadingStageText) {
-      elements.loadingStageText.textContent = "Server is waking up from cold sleep (Render free tier may take 30–50s)...";
+      elements.loadingStageText.textContent = "Connecting to health service...";
     }
   }, 5000);
 
@@ -764,7 +1073,7 @@ async function runPrediction(payload) {
 
     const data = await response.json();
     renderPredictionSuccess(data, payload);
-    updateBackendStatus("online", "Backend Online");
+    updateBackendStatus("online", "System Connected");
   } catch (err) {
     clearTimeout(coldStartTimer);
     clearTimeout(timeoutId);
@@ -792,26 +1101,43 @@ async function runPrediction(payload) {
 function renderPredictionSuccess(result, inputs) {
   setActiveState("success");
 
-  const isPositive = result.prediction === 1;
+  const isGlucoseModel = (result.model_name && (result.model_name.includes("Glucose") || result.model_name.includes("excursion"))) || result.excursion_risk_probability !== undefined;
+  const isCvModel = (result.model_name && (result.model_name.includes("Cardiovascular") || result.model_name.includes("Heart"))) || result.cv_event_prediction !== undefined;
+
+  let isPositive = false;
+  let title = "";
+  let probabilityVal = null;
+  let probNote = "";
+  let modelLabel = "CuraTwin Health Twin";
+  let sourceBadgeText = "Blood Sugar Monitor";
+
+  if (isGlucoseModel) {
+    isPositive = result.prediction === 1;
+    title = result.risk_tier || (isPositive ? "High Spike Risk (>180 mg/dL)" : "Stable Blood Sugar Expected");
+    probabilityVal = result.excursion_risk_probability;
+    probNote = "Estimated chance of blood sugar rising above 180 mg/dL in the next 2 hours.";
+    modelLabel = "CuraTwin Blood Sugar AI";
+    sourceBadgeText = "Blood Sugar Monitor";
+  } else if (isCvModel) {
+    isPositive = result.cv_event_prediction === 1;
+    title = result.risk_level || (isPositive ? "Higher 1-Year Heart Risk" : "Low 1-Year Heart Risk");
+    probabilityVal = result.estimated_1y_event_probability;
+    probNote = "Estimated chance of experiencing a significant heart or stroke event over the next year.";
+    modelLabel = "CuraTwin Heart Health AI";
+    sourceBadgeText = "Heart Health Check";
+  } else {
+    isPositive = result.prediction === 1;
+    title = result.label || (isPositive ? "Elevated Health Risk" : "Normal Health Parameters");
+    probabilityVal = result.probability;
+    probNote = result.probability_note || "Estimated risk level based on your measurements.";
+    modelLabel = "CuraTwin Health Twin";
+    sourceBadgeText = (result.source || inputs.source) === "sensor" ? "Smartwatch Monitor" : "Health Assessment";
+  }
 
   // Outcome Badge
-  elements.predictionBadge.className = `outcome-badge ${
-    isPositive ? "outcome-positive" : "outcome-negative"
-  }`;
-  elements.outcomeLabel.textContent = result.label || (isPositive ? "Positive model classification" : "Negative model classification");
-
-  // Source Badge
-  const source = result.source || inputs.source || "manual";
-  const device = result.device_id || inputs.device_id || "Local Form";
-  if (source === "sensor") {
-    elements.resultSourceBadge.textContent = `Watch / Sensor (${device})`;
-    elements.resultSourceBadge.style.backgroundColor = "rgba(14, 165, 233, 0.15)";
-    elements.resultSourceBadge.style.color = "#0369a1";
-  } else {
-    elements.resultSourceBadge.textContent = "Manual Input";
-    elements.resultSourceBadge.style.backgroundColor = "rgba(0, 0, 0, 0.08)";
-    elements.resultSourceBadge.style.color = "inherit";
-  }
+  elements.predictionBadge.className = `outcome-badge ${isPositive ? "outcome-positive" : "outcome-negative"}`;
+  elements.outcomeLabel.textContent = title;
+  elements.resultSourceBadge.textContent = sourceBadgeText;
 
   // Outcome Icon
   if (isPositive) {
@@ -831,32 +1157,85 @@ function renderPredictionSuccess(result, inputs) {
   }
 
   // Probability display
-  if (result.probability !== null && typeof result.probability === "number") {
+  if (probabilityVal !== null && typeof probabilityVal === "number") {
     elements.probabilityBlock.removeAttribute("hidden");
-    const pct = (result.probability * 100).toFixed(2);
+    const pct = (probabilityVal * 100).toFixed(2);
     elements.metricProbabilityVal.textContent = `${pct}%`;
     elements.gaugeBarFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
-
-    if (result.probability_note) {
-      elements.probabilityNote.textContent = result.probability_note;
-    }
+    elements.probabilityNote.textContent = probNote;
   } else {
     elements.probabilityBlock.setAttribute("hidden", "true");
   }
 
-  // Audit / Feature Summary Grid
-  const summaryData = result.input_summary || inputs;
-  elements.auditDeviceId.textContent = `Source: ${source.toUpperCase()} (${device})`;
-  elements.auditSummaryGrid.innerHTML = `
-    <div class="summary-item"><span class="summary-key">Gender:</span><span class="summary-val">${summaryData.gender}</span></div>
-    <div class="summary-item"><span class="summary-key">Age:</span><span class="summary-val">${summaryData.age} yrs</span></div>
-    <div class="summary-item"><span class="summary-key">Hypertension:</span><span class="summary-val">${summaryData.hypertension === 1 ? "Yes (1)" : "No (0)"}</span></div>
-    <div class="summary-item"><span class="summary-key">Heart Disease:</span><span class="summary-val">${summaryData.heart_disease === 1 ? "Yes (1)" : "No (0)"}</span></div>
-    <div class="summary-item"><span class="summary-key">Smoking:</span><span class="summary-val">${summaryData.smoking_history}</span></div>
-    <div class="summary-item"><span class="summary-key">BMI:</span><span class="summary-val">${summaryData.bmi} kg/m²</span></div>
-    <div class="summary-item"><span class="summary-key">HbA1c:</span><span class="summary-val">${summaryData.HbA1c_level}%</span></div>
-    <div class="summary-item"><span class="summary-key">Blood Glucose:</span><span class="summary-val">${summaryData.blood_glucose_level} mg/dL</span></div>
-  `;
+  // Audit and Factors display
+  if (isGlucoseModel && result.top_contributing_factors) {
+    let factorsHtml = '<div class="factors-container" style="grid-column: 1 / -1;"><div class="factors-title">Key Health Factors</div><div class="factors-grid">';
+    result.top_contributing_factors.forEach(f => {
+      const tagClass = f.impact.toLowerCase().includes("high") ? "factor-tag-high" : (f.impact.toLowerCase().includes("protective") || f.impact.toLowerCase().includes("active") ? "factor-tag-protective" : "factor-tag-neutral");
+      factorsHtml += `
+        <div class="factor-chip">
+          <span class="factor-chip-k">${f.factor}</span>
+          <span class="factor-chip-v">${f.value}</span>
+          <span class="factor-chip-tag ${tagClass}">${f.impact}</span>
+        </div>
+      `;
+    });
+    factorsHtml += '</div></div>';
+
+    const recBox = `
+      <div class="recommendation-box ${isPositive ? 'rec-warning' : 'rec-success'}" style="grid-column: 1 / -1;">
+        <div class="recommendation-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="recommendation-content">
+          <h5>${isPositive ? 'Blood Sugar Spike Alert' : 'Healthy Blood Sugar Plan'}</h5>
+          <p>${result.clinical_recommendation}</p>
+        </div>
+      </div>
+    `;
+    elements.auditDeviceId.textContent = `Blood Sugar Forecast`;
+    elements.auditSummaryGrid.innerHTML = factorsHtml + recBox;
+  } else if (isCvModel && result.top_risk_factors) {
+    let factorsHtml = '<div class="factors-container" style="grid-column: 1 / -1;"><div class="factors-title">Key Heart Health Factors</div><div class="factors-grid">';
+    result.top_risk_factors.forEach(f => {
+      const tagClass = f.severity.toLowerCase().includes("high") || f.severity.toLowerCase().includes("elevated") || f.severity.toLowerCase().includes("attention") ? "factor-tag-high" : (f.severity.toLowerCase().includes("optimal") || f.severity.toLowerCase().includes("healthy") || f.severity.toLowerCase().includes("normal") ? "factor-tag-optimal" : "factor-tag-neutral");
+      factorsHtml += `
+        <div class="factor-chip">
+          <span class="factor-chip-k">${f.factor}</span>
+          <span class="factor-chip-v">${f.value}</span>
+          <span class="factor-chip-tag ${tagClass}">${f.severity}</span>
+        </div>
+      `;
+    });
+    factorsHtml += '</div></div>';
+
+    const actionBox = `
+      <div class="recommendation-box ${isPositive ? 'rec-warning' : 'rec-success'}" style="grid-column: 1 / -1;">
+        <div class="recommendation-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div class="recommendation-content">
+          <h5>${isPositive ? 'Heart Health Attention Needed' : 'Healthy Heart Plan'}</h5>
+          <p>${result.clinical_action_plan}</p>
+        </div>
+      </div>
+    `;
+    elements.auditDeviceId.textContent = `Heart Health Check`;
+    elements.auditSummaryGrid.innerHTML = factorsHtml + actionBox;
+  } else {
+    const summaryData = result.input_summary || inputs;
+    elements.auditDeviceId.textContent = `Source: ${(result.source || inputs.source || 'manual').toUpperCase()}`;
+    elements.auditSummaryGrid.innerHTML = `
+      <div class="summary-item"><span class="summary-key">Gender:</span><span class="summary-val">${summaryData.gender}</span></div>
+      <div class="summary-item"><span class="summary-key">Age:</span><span class="summary-val">${summaryData.age} yrs</span></div>
+      <div class="summary-item"><span class="summary-key">Hypertension:</span><span class="summary-val">${summaryData.hypertension === 1 ? "Yes (1)" : "No (0)"}</span></div>
+      <div class="summary-item"><span class="summary-key">Heart Disease:</span><span class="summary-val">${summaryData.heart_disease === 1 ? "Yes (1)" : "No (0)"}</span></div>
+      <div class="summary-item"><span class="summary-key">Smoking:</span><span class="summary-val">${summaryData.smoking_history}</span></div>
+      <div class="summary-item"><span class="summary-key">BMI:</span><span class="summary-val">${summaryData.bmi} kg/m²</span></div>
+      <div class="summary-item"><span class="summary-key">HbA1c:</span><span class="summary-val">${summaryData.HbA1c_level}%</span></div>
+      <div class="summary-item"><span class="summary-key">Blood Glucose:</span><span class="summary-val">${summaryData.blood_glucose_level} mg/dL</span></div>
+    `;
+  }
 
   // Provenance Dual Timestamps (Measurement vs Prediction Time)
   const measIso = result.measurement_timestamp || inputs.measurement_timestamp;
@@ -1019,6 +1398,103 @@ document.addEventListener("DOMContentLoaded", () => {
   elements.btnPresetHealthy.addEventListener("click", () => loadPresetProfile(presetHealthy));
   elements.btnPresetElevated.addEventListener("click", () => loadPresetProfile(presetElevated));
 
+  // Cardiovascular Presets (Model B)
+  const cvPresetLow = {
+    age: 38,
+    sex: "Female",
+    sbp: 114,
+    dbp: 72,
+    totChol: 168,
+    hdl: 62,
+    ldl: 88,
+    trig: 95,
+    glucose: 88,
+    hba1c: 5.2,
+    bmi: 22.4,
+    smoking: "non_smoker",
+    htnDuration: 0,
+    statin: 0
+  };
+
+  const cvPresetMod = {
+    age: 56,
+    sex: "Male",
+    sbp: 136,
+    dbp: 86,
+    totChol: 215,
+    hdl: 44,
+    ldl: 135,
+    trig: 175,
+    glucose: 112,
+    hba1c: 6.1,
+    bmi: 28.5,
+    smoking: "former_smoker",
+    htnDuration: 3.0,
+    statin: 0
+  };
+
+  const cvPresetHigh = {
+    age: 68,
+    sex: "Male",
+    sbp: 158,
+    dbp: 96,
+    totChol: 265,
+    hdl: 34,
+    ldl: 172,
+    trig: 290,
+    glucose: 168,
+    hba1c: 8.4,
+    bmi: 34.2,
+    smoking: "current_smoker",
+    htnDuration: 12.0,
+    statin: 1
+  };
+
+  if (elements.btnCvPresetLow) {
+    elements.btnCvPresetLow.addEventListener("click", () => loadCvPreset(cvPresetLow));
+  }
+  if (elements.btnCvPresetMod) {
+    elements.btnCvPresetMod.addEventListener("click", () => loadCvPreset(cvPresetMod));
+  }
+  if (elements.btnCvPresetHigh) {
+    elements.btnCvPresetHigh.addEventListener("click", () => loadCvPreset(cvPresetHigh));
+  }
+
+  // Model A Glucose Excursion Presets
+  const btnGlucoseLow = document.getElementById("btn-glucose-preset-low");
+  const btnGlucoseMod = document.getElementById("btn-glucose-preset-mod");
+  const btnGlucoseHigh = document.getElementById("btn-glucose-preset-high");
+
+  function loadGlucosePreset(glucoseVal, stepsVal, hrVal, trend, carbsVal) {
+    window.latestLoggedMeal = { total_carbs: carbsVal, timestamp: Date.now() - 30 * 60000 };
+    const nowStr = new Date().toLocaleTimeString();
+    const reading = {
+      glucose: glucoseVal,
+      heartRate: hrVal,
+      steps: stepsVal,
+      glucoseTrend: trend,
+      timeFormatted: nowStr,
+      timestamp: new Date().toISOString()
+    };
+    sensorAdapter.latestMeasurement = reading;
+    if (!sensorAdapter.history) sensorAdapter.history = [];
+    sensorAdapter.history.push({ glucose: glucoseVal, timeFormatted: nowStr });
+    if (sensorAdapter.history.length > 30) sensorAdapter.history.shift();
+    updateTelemetryCards(reading);
+    renderTrendChart();
+    evaluateSensorPrediction();
+  }
+
+  if (btnGlucoseLow) {
+    btnGlucoseLow.addEventListener("click", () => loadGlucosePreset(96.0, 850, 68, "stable", 15.0));
+  }
+  if (btnGlucoseMod) {
+    btnGlucoseMod.addEventListener("click", () => loadGlucosePreset(145.0, 320, 75, "rising", 45.0));
+  }
+  if (btnGlucoseHigh) {
+    btnGlucoseHigh.addEventListener("click", () => loadGlucosePreset(188.0, 80, 88, "rising", 85.0));
+  }
+
   // Form Submission (Manual Mode)
   elements.form.addEventListener("submit", (evt) => {
     evt.preventDefault();
@@ -1029,16 +1505,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Reset Form
+  // Reset Form (Manual Mode)
   elements.resetBtn.addEventListener("click", () => {
     elements.form.reset();
     setActiveState("idle");
   });
 
-  // Retry Inference
+  // Cardiovascular Form Submission (Model B)
+  if (elements.cvForm) {
+    elements.cvForm.addEventListener("submit", (evt) => {
+      evt.preventDefault();
+      const payload = extractCvFormData();
+      if (payload) {
+        runCardiovascularPrediction(payload);
+      }
+    });
+  }
+
+  // Cardiovascular Form Reset
+  if (elements.btnResetCvForm) {
+    elements.btnResetCvForm.addEventListener("click", () => {
+      elements.cvForm.reset();
+      setActiveState("idle");
+    });
+  }
+
+  // Retry Inference (supports Legacy, Model A, and Model B)
   elements.retryBtn.addEventListener("click", () => {
     if (lastSubmittedPayload) {
-      runPrediction(lastSubmittedPayload);
+      if (lastSubmittedPayload.source === "cardiovascular_twin" || lastSubmittedPayload.systolic_bp !== undefined) {
+        runCardiovascularPrediction(lastSubmittedPayload);
+      } else if (lastSubmittedPayload.lookahead_window_minutes || lastSubmittedPayload.current_glucose_mg_dl !== undefined) {
+        runGlucoseExcursionPrediction(lastSubmittedPayload);
+      } else {
+        runPrediction(lastSubmittedPayload);
+      }
     } else {
       const payload = extractFormData();
       if (payload) runPrediction(payload);

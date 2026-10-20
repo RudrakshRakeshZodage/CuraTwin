@@ -4,6 +4,7 @@ CuraTwin — FastAPI Diabetes Prediction & Sensor Telemetry REST API
 
 import os
 import logging
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import Dict, Any, List
 
@@ -21,12 +22,17 @@ from schemas import (
     FoodItemBreakdown,
     VALID_GENDERS,
     VALID_SMOKING_HISTORIES,
+    GlucoseExcursionInput,
+    GlucoseExcursionOutput,
+    CardiovascularRiskInput,
+    CardiovascularRiskOutput,
 )
 import json
 import urllib.request
 import urllib.error
 from model_loader import (
-    model_loader,
+    glucose_model_loader,
+    cv_model_loader,
     ModelLoadingError,
     ModelInferenceError,
 )
@@ -40,21 +46,29 @@ logger = logging.getLogger("curatwin.api")
 
 
 # -----------------------------------------------------------------------------
-# Lifespan Context Manager: Load ML Model Once on Startup
+# Lifespan Context Manager: Load ML Models on Startup
 # -----------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Load and verify the trained diabetes machine learning model during startup.
+    Load and verify trained machine learning models during startup.
     Ensures zero inference latency on incoming HTTP requests.
+    Only curatwin_glucose_model.joblib and curatwin_cardiovascular_model.joblib are loaded.
     """
-    logger.info("Starting CuraTwin API application...")
+    logger.info("Starting CuraTwin API application with dual digital-twin models...")
+
     try:
-        model_loader.load()
-        logger.info("Trained diabetes ML model loaded successfully into memory.")
+        glucose_model_loader.load()
+        logger.info("Trained Glucose Excursion XGBoost model (curatwin_glucose_model.joblib) loaded successfully into memory.")
     except Exception as exc:
-        logger.error(f"CRITICAL: Failed to load diabetes model during startup: {exc}")
-        # Note: We do not crash the app so that /health can report degraded status to monitoring
+        logger.error(f"Failed to load glucose excursion model during startup: {exc}")
+
+    try:
+        cv_model_loader.load()
+        logger.info("Trained Cardiovascular Risk Balanced Random Forest model (curatwin_cardiovascular_model.joblib) loaded successfully into memory.")
+    except Exception as exc:
+        logger.error(f"Failed to load cardiovascular risk model during startup: {exc}")
+
     yield
     logger.info("Shutting down CuraTwin API application...")
 
@@ -158,45 +172,62 @@ def get_root() -> Dict[str, Any]:
 @app.get("/health", response_model=HealthResponse, summary="Service & Model Health")
 def get_health() -> HealthResponse:
     """
-    Confirm service operational status and verify that the ML model is loaded and ready.
+    Confirm service operational status and verify that both ML models are loaded and ready.
     """
-    is_loaded = model_loader.is_loaded
+    both_loaded = glucose_model_loader.is_loaded and cv_model_loader.is_loaded
+    expected_feats = glucose_model_loader.expected_features + cv_model_loader.expected_features
     return HealthResponse(
-        status="healthy" if is_loaded else "degraded",
-        model_loaded=is_loaded,
-        model_version=model_loader.model_version,
-        estimator=model_loader.estimator_name,
-        feature_count=len(model_loader.expected_features),
-        expected_features=model_loader.expected_features,
+        status="healthy" if both_loaded else "degraded",
+        model_loaded=both_loaded,
+        model_version="CuraTwin v1.2 (Dual Models)",
+        estimator="XGBoost (Glucose Excursion) + Balanced Random Forest (Cardiovascular Risk)",
+        feature_count=len(expected_feats),
+        expected_features=expected_feats,
         supported_genders=VALID_GENDERS,
         supported_smoking_categories=VALID_SMOKING_HISTORIES,
     )
 
 
-@app.post("/predict", response_model=PredictionOutput, summary="Predict Diabetes Risk Classification")
+@app.post("/predict", response_model=PredictionOutput, summary="Predict Excursion / Diabetes Risk Classification")
 def predict_diabetes(payload: PredictionInput) -> PredictionOutput:
     """
-    Accept patient clinical biomarkers, validate inputs, apply fitted preprocessing,
-    and return the model's binary classification and statistical probability.
+    Evaluates patient clinical biomarkers using the trained CuraTwin Glucose Excursion model (curatwin_glucose_model.joblib).
     """
-    if not model_loader.is_loaded:
-        logger.error("Predict called while model is not loaded.")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "Diabetes machine learning model is not currently loaded. "
-                "The server may be starting up or the model file could not be found."
-            )
-        )
+    if not glucose_model_loader.is_loaded:
+        glucose_model_loader.load()
 
     try:
-        result = model_loader.predict(payload)
-        return result
-    except ModelInferenceError as err:
-        logger.error(f"Inference error encountered: {err}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Inference error: {str(err)}"
+        exc_input = GlucoseExcursionInput(
+            current_glucose_mg_dl=float(payload.blood_glucose_level),
+            hba1c=float(payload.HbA1c_level),
+            bmi=float(payload.bmi),
+            age_years=float(payload.age),
+            sex=payload.gender,
+            device_id=payload.device_id,
+            measurement_timestamp=payload.measurement_timestamp
+        )
+        res = glucose_model_loader.predict(exc_input)
+        now_iso = datetime.now(timezone.utc).isoformat()
+        return PredictionOutput(
+            prediction=res.prediction,
+            label="Sugar Spike Alert (>180 mg/dL)" if res.prediction == 1 else "Normal Blood Sugar Expected",
+            probability=res.excursion_risk_probability,
+            model_version="CuraTwin-GlucoseForecast-v1",
+            probability_note=f"Estimated likelihood of blood sugar rising above 180 mg/dL in the next 2 hours: {res.risk_tier}",
+            source=payload.source or "manual",
+            device_id=payload.device_id,
+            measurement_timestamp=payload.measurement_timestamp or now_iso,
+            prediction_timestamp=now_iso,
+            input_summary={
+                "gender": payload.gender,
+                "age": payload.age,
+                "hypertension": payload.hypertension,
+                "heart_disease": payload.heart_disease,
+                "smoking_history": payload.smoking_history,
+                "bmi": payload.bmi,
+                "HbA1c_level": payload.HbA1c_level,
+                "blood_glucose_level": payload.blood_glucose_level,
+            }
         )
     except Exception as exc:
         logger.exception("Unexpected error during prediction")
@@ -204,6 +235,44 @@ def predict_diabetes(payload: PredictionInput) -> PredictionOutput:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during prediction computation: {str(exc)}"
         )
+
+
+@app.post("/api/predict/glucose-excursion", response_model=GlucoseExcursionOutput, summary="Predict 2-Hour Short-Term Glucose Excursion Risk")
+def predict_glucose_excursion(payload: GlucoseExcursionInput) -> GlucoseExcursionOutput:
+    """
+    Accepts instantaneous CGM telemetry, meal nutrition, step cadence, and personal baselines,
+    and returns 2-hour lookahead glucose excursion risk probability (>180 mg/dL).
+    """
+    try:
+        return glucose_model_loader.predict(payload)
+    except Exception as exc:
+        logger.exception("Glucose excursion inference failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Glucose excursion inference error: {str(exc)}"
+        )
+
+
+@app.post("/api/predict/cardiovascular-risk", response_model=CardiovascularRiskOutput, summary="Predict 365-Day Incident Cardiovascular Event Risk")
+def predict_cardiovascular_risk(payload: CardiovascularRiskInput) -> CardiovascularRiskOutput:
+    """
+    Accepts longitudinal vitals, blood pressure, lipid panels, and co-morbidities,
+    and returns 1-year first-incident acute MI/stroke risk evaluation.
+    """
+    try:
+        return cv_model_loader.predict(payload)
+    except Exception as exc:
+        logger.exception("Cardiovascular risk inference failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cardiovascular risk inference error: {str(exc)}"
+        )
+
+
+def call_groq_api(req: urllib.request.Request) -> Dict[str, Any]:
+    with urllib.request.urlopen(req, timeout=18) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
 
 @app.post("/api/analyze-food", response_model=FoodAnalysisResponse, summary="Analyze Meal Nutrition via Real AI")
 def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse:
@@ -315,17 +384,16 @@ def analyze_food_nutrition(payload: FoodAnalysisRequest) -> FoodAnalysisResponse
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=18) as resp:
-            resp_body = json.loads(resp.read().decode("utf-8"))
-            content = resp_body["choices"][0]["message"]["content"]
-            parsed_json = json.loads(content)
+        resp_body = call_groq_api(req)
+        content = resp_body["choices"][0]["message"]["content"]
+        parsed_json = json.loads(content)
             
-            # Apply clinical BMI intake threshold rules
-            cals = float(parsed_json.get("total_calories", 0.0))
-            parsed_json["recommended_max_meal_calories"] = recommended_max_cals
-            parsed_json["bmi_meal_limit_exceeded"] = cals > recommended_max_cals
-            
-            return FoodAnalysisResponse(**parsed_json)
+        # Apply clinical BMI intake threshold rules
+        cals = float(parsed_json.get("total_calories", 0.0))
+        parsed_json["recommended_max_meal_calories"] = recommended_max_cals
+        parsed_json["bmi_meal_limit_exceeded"] = cals > recommended_max_cals
+        
+        return FoodAnalysisResponse(**parsed_json)
     except urllib.error.HTTPError as http_err:
         err_msg = http_err.read().decode("utf-8", errors="replace")
         logger.error(f"Groq API HTTP error: {http_err.code} - {err_msg}")

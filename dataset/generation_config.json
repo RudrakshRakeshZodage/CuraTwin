@@ -1,0 +1,60 @@
+{
+  "project_name": "CuraTwin Longitudinal Dataset Generation",
+  "version": "1.0.0",
+  "random_seed": 42,
+  "synthea_source_directory": "output/csv",
+  "dataset_a_diabetes": {
+    "target_name": "glucose_excursion_next_2h",
+    "target_horizon_minutes": 120,
+    "excursion_threshold_mg_dl": 180.0,
+    "hypoglycemia_threshold_mg_dl": 70.0,
+    "cgm_sampling_interval_minutes": 5,
+    "prediction_frequency_minutes": 30,
+    "historical_lookback_minutes": 1440,
+    "min_future_observations_required": 20,
+    "indian_meal_categories": [
+      "rice-based",
+      "roti-based",
+      "millet",
+      "dal-vegetable",
+      "snack"
+    ],
+    "ablation_groups": [
+      "basic_clinical",
+      "clinical_plus_longitudinal",
+      "clinical_plus_personal_baseline",
+      "clinical_plus_cross_signal",
+      "all_features_with_dq"
+    ]
+  },
+  "dataset_b_cardiovascular": {
+    "target_name": "cv_event_next_365d",
+    "target_horizon_days": 365,
+    "min_follow_up_days": 365,
+    "qualifying_mi_snomed_codes": [
+      "22298006",
+      "401314000",
+      "401303003"
+    ],
+    "qualifying_stroke_snomed_codes": [
+      "230690007",
+      "422504000",
+      "423441000",
+      "422604002"
+    ],
+    "exclude_prior_qualifying_events": true,
+    "ablation_groups": [
+      "basic_clinical",
+      "clinical_plus_longitudinal",
+      "clinical_plus_personal_baseline",
+      "clinical_plus_cross_signal",
+      "all_features_with_dq"
+    ]
+  },
+  "cohort_partitioning": {
+    "train_ratio": 0.75,
+    "test_ratio": 0.25,
+    "stratify_by_patient_id": true,
+    "chronological_evaluation_supported": true
+  }
+}

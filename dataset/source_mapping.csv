@@ -1,0 +1,52 @@
+source_table,source_field,code_system,source_code,source_description,normalized_feature,unit,transformation_logic,target_dataset
+patients.csv,Id,UUID,N/A,Synthea Unique Patient Identifier,patient_id,string,Direct 1:1 mapping,Both
+patients.csv,BIRTHDATE,ISO-8601,N/A,Patient Date of Birth,age,years,"Computed as floor((index_timestamp - birthdate) / 365.25)",Both
+patients.csv,GENDER,Local,M / F,Patient Administrative Gender,sex_mapped,categorical,"Direct mapping: 'M' -> 'Male', 'F' -> 'Female'",Both
+observations.csv,VALUE,LOINC,39156-5,Body mass index (BMI) [Ratio],bmi,kg/m2,Most recent numeric observation prior to index date,Both
+observations.csv,VALUE,LOINC,8480-6,Systolic Blood Pressure,systolic_bp,mmHg,Most recent systolic reading prior to index date,Both
+observations.csv,VALUE,LOINC,8462-4,Diastolic Blood Pressure,diastolic_bp,mmHg,Most recent diastolic reading prior to index date,Both
+observations.csv,VALUE,LOINC,8867-4,Heart rate,heart_rate,bpm,Most recent heart rate observation prior to index date,Both
+observations.csv,VALUE,LOINC,9279-1,Respiratory rate,respiratory_rate,breaths/min,Most recent respiratory rate prior to index date,Dataset B
+observations.csv,VALUE,LOINC,2708-6,Oxygen saturation in Arterial blood,oxygen_saturation,%,Most recent arterial O2 saturation prior to index date,Dataset B
+observations.csv,VALUE,LOINC,4548-4,Hemoglobin A1c/Hemoglobin.total in Blood,hba1c,%,Most recent HbA1c measurement prior to index date,Both
+observations.csv,VALUE,LOINC,2339-0,Glucose [Mass/volume] in Blood,fasting_glucose,mg/dL,Most recent lab glucose measurement prior to index date,Both
+observations.csv,VALUE,LOINC,2345-7,Glucose [Mass/volume] in Serum or Plasma,fasting_glucose,mg/dL,Fallback serum glucose if blood glucose absent,Both
+observations.csv,VALUE,LOINC,2093-3,Cholesterol [Mass/volume] in Serum or Plasma,total_cholesterol,mg/dL,Most recent total cholesterol prior to index date,Dataset B
+observations.csv,VALUE,LOINC,18262-6,Cholesterol in LDL [Mass/volume] in Serum or Plasma,ldl_cholesterol,mg/dL,Most recent LDL cholesterol prior to index date,Both
+observations.csv,VALUE,LOINC,2085-9,Cholesterol in HDL [Mass/volume] in Serum or Plasma,hdl_cholesterol,mg/dL,Most recent HDL cholesterol prior to index date,Both
+observations.csv,VALUE,LOINC,2571-8,Triglyceride [Mass/volume] in Serum or Plasma,triglycerides,mg/dL,Most recent triglycerides prior to index date,Both
+observations.csv,VALUE,LOINC,38483-4,Creatinine [Mass/volume] in Blood,serum_creatinine,mg/dL,Most recent serum creatinine prior to index date,Dataset B
+observations.csv,VALUE,LOINC,2160-0,Creatinine [Mass/volume] in Serum or Plasma,serum_creatinine,mg/dL,Fallback serum creatinine prior to index date,Dataset B
+observations.csv,VALUE,LOINC,33914-3,Glomerular filtration rate [MDRD]/1.73 sq M,egfr,mL/min/1.73m2,Most recent eGFR observation or derived via CKD-EPI formula,Both
+conditions.csv,CODE,SNOMED-CT,44054006,Diabetes mellitus type 2 (disorder),diabetes_status,binary,"1 if diagnosis active on/before index date, 0 otherwise",Both
+conditions.csv,START,ISO-8601,44054006,Diabetes mellitus diagnosis onset,diabetes_duration_years,years,"Computed as (index_date - first_diagnosis_start) / 365.25",Both
+conditions.csv,CODE,SNOMED-CT,59621000,Essential hypertension (disorder),hypertension_status,binary,"1 if diagnosis active on/before index date, 0 otherwise",Both
+conditions.csv,CODE,SNOMED-CT,55822004,Hyperlipidemia (disorder),dyslipidemia_status,binary,"1 if diagnosis active on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,431855005,Chronic kidney disease stage 1 (disorder),ckd_status,binary,"1 if any CKD stage diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,431856006,Chronic kidney disease stage 2 (disorder),ckd_status,binary,"1 if any CKD stage diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,433144002,Chronic kidney disease stage 3 (disorder),ckd_status,binary,"1 if any CKD stage diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,431857002,Chronic kidney disease stage 4 (disorder),ckd_status,binary,"1 if any CKD stage diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,84114007,Heart failure (disorder),heart_failure_status,binary,"1 if diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,88805009,Chronic congestive heart failure (disorder),heart_failure_status,binary,"1 if diagnosis present on/before index date, 0 otherwise",Dataset B
+conditions.csv,CODE,SNOMED-CT,22298006,Myocardial infarction (disorder),cv_event_next_365d,target_binary,"Qualifying acute event occurring within (index_date, index_date + 365 days]",Dataset B
+conditions.csv,CODE,SNOMED-CT,401314000,Acute non-ST segment elevation myocardial infarction (disorder),cv_event_next_365d,target_binary,"Qualifying acute event occurring within (index_date, index_date + 365 days]",Dataset B
+conditions.csv,CODE,SNOMED-CT,401303003,Acute ST segment elevation myocardial infarction (disorder),cv_event_next_365d,target_binary,"Qualifying acute event occurring within (index_date, index_date + 365 days]",Dataset B
+conditions.csv,CODE,SNOMED-CT,230690007,Cerebrovascular accident (disorder),cv_event_next_365d,target_binary,"Qualifying acute event occurring within (index_date, index_date + 365 days]",Dataset B
+conditions.csv,CODE,SNOMED-CT,399211009,History of myocardial infarction (situation),prior_cv_event,binary,"Exclusion criteria: if present on/before index date, patient is excluded",Dataset B
+medications.csv,CODE,RxNorm,860975,24 HR Metformin hydrochloride 500 MG Extended Release Oral Tablet,medication_metformin,binary,"1 if active on index date, 0 otherwise",Both
+medications.csv,CODE,RxNorm,106892,insulin isophane human 70 UNT/ML / insulin regular human 30 UNT/ML,medication_insulin,binary,"1 if active on index date, 0 otherwise",Both
+medications.csv,CODE,RxNorm,311034,insulin regular human 100 UNT/ML Injectable Solution,medication_insulin,binary,"1 if active on index date, 0 otherwise",Both
+medications.csv,CODE,RxNorm,314231,Simvastatin 10 MG Oral Tablet,medication_statin,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,617312,atorvastatin 10 MG Oral Tablet,medication_statin,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,314076,lisinopril 10 MG Oral Tablet,medication_antihypertensive,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,308136,amLODIPine 2.5 MG Oral Tablet,medication_antihypertensive,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,310798,Hydrochlorothiazide 25 MG Oral Tablet,medication_antihypertensive,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,866412,24 HR metoprolol succinate 100 MG Extended Release Oral Tablet,medication_antihypertensive,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,243670,aspirin 81 MG Oral Tablet,medication_antiplatelet,binary,"1 if active on index date, 0 otherwise",Dataset B
+medications.csv,CODE,RxNorm,309362,Clopidogrel 75 MG Oral Tablet,medication_antiplatelet,binary,"1 if active on index date, 0 otherwise",Dataset B
+cgm_stream (simulated),glucose,Physiological Simulation,N/A,Continuous Glucose Monitor Telemetry,glucose_excursion_next_2h,target_binary,"1 if any reading in (t, t+120m] > 180 mg/dL, 0 if all <= 180, null if incomplete",Dataset A
+wearable_stream (simulated),heart_rate,Physiological Simulation,N/A,Photoplethysmography Heart Rate,heart_rate_stream,bpm,Continuous wearable HR sampled at 5-min intervals,Dataset A
+wearable_stream (simulated),steps,Physiological Simulation,N/A,Accelerometry Steps Counter,steps_past_hour,steps,Hourly accumulated steps prior to timestamp t,Dataset A
+wearable_stream (simulated),rmssd,Physiological Simulation,N/A,Heart Rate Variability,hrv_rmssd,ms,Root mean square of successive differences,Dataset A
+wearable_stream (simulated),sleep,Physiological Simulation,N/A,Polysomnography Sleep Tracker,sleep_duration_hours,hours,Total sleep duration for the preceding night,Dataset A
+meal_log (simulated),carbs_g,Nutritional Simulation,N/A,Macronutrient Intake,meal_carbs_g,grams,Carbohydrates in preceding or concurrent meal event,Dataset A
