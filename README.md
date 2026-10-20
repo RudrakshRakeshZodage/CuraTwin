@@ -137,9 +137,9 @@ The project deploys **two strictly independent, specialized machine learning mod
 
 ---
 
-## 8. Project Demonstration Video 
+## 8. Project Demonstration Video
 
-▶️ **[Watch CuraTwin Comprehensive Project Demo]([https://youtu.be/dQw4w9WgXcQ](https://drive.google.com/file/d/1mVfBOl8IvXvJ7R9L37TW4S9PMmEYmGaG/view?usp=sharing))**  
+▶️ **[Watch CuraTwin Comprehensive Project Demo](https://drive.google.com/file/d/1mVfBOl8IvXvJ7R9L37TW4S9PMmEYmGaG/view?usp=sharing)**
 
 ---
 
