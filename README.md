@@ -220,11 +220,7 @@ Full license file: [LICENSE](LICENSE)
 
 ## 10. Architecture Diagram (PDF / PPT Format)
 
-<p align="center">
-  <img src="1_1.png" alt="CuraTwin System Architecture Diagram" width="100%" />
-</p>
-
-- 📄 **Download Architecture Diagram (PDF):** [docs/CuraTwin_Architecture_Diagram.pdf](docs/CuraTwin_Architecture_Diagram.pdf)
+- 📄 **Architecture Diagram (PDF):** [1_1.pdf](1_1.pdf)
 
 
 ### System Flowchart:
