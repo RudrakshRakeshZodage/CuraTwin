@@ -10,7 +10,7 @@
 ---
 
 
-🌐 **Live Demo:** [Launch CuraTwin Website](https://rudrakshrakeshzodage.github.io/CuraTwin/)
+🌐 **Live Demo:** [Launch CuraTwin Website]((https://srushtikshinde95.github.io/CuraTwin/))
 
 ---
 ## 1. Team Details
