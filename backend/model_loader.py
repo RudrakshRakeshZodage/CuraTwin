@@ -4,8 +4,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 import joblib
-import pandas as pd
 import numpy as np
+
+# Some managed Windows environments block pandas' native extensions.  Keep the
+# API bootable in that case so its health, docs, and non-ML endpoints remain
+# available; prediction requests receive a precise service error instead.
+try:
+    import pandas as pd
+    PANDAS_IMPORT_ERROR = None
+except ImportError as exc:
+    pd = None
+    PANDAS_IMPORT_ERROR = exc
 
 from schemas import (
     GlucoseExcursionInput,
@@ -15,6 +24,9 @@ from schemas import (
 )
 
 logger = logging.getLogger("curatwin.model_loader")
+
+if PANDAS_IMPORT_ERROR:
+    logger.warning("pandas could not be imported; ML prediction endpoints are unavailable: %s", PANDAS_IMPORT_ERROR)
 
 
 class ModelLoadingError(RuntimeError):
@@ -85,6 +97,8 @@ class GlucoseExcursionModelLoader:
         return self.model is not None
 
     def predict(self, data: GlucoseExcursionInput) -> GlucoseExcursionOutput:
+        if pd is None:
+            raise ModelInferenceError(f"pandas is unavailable: {PANDAS_IMPORT_ERROR}")
         if self.model is None:
             self.load()
 
@@ -250,6 +264,8 @@ class CardiovascularModelLoader:
         return self.model is not None
 
     def predict(self, data: CardiovascularRiskInput) -> CardiovascularRiskOutput:
+        if pd is None:
+            raise ModelInferenceError(f"pandas is unavailable: {PANDAS_IMPORT_ERROR}")
         if self.model is None:
             self.load()
 
